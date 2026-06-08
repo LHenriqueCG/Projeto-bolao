@@ -66,30 +66,65 @@
         #fbStatus.error   { background: #fee2e2; color: #b91c1c; display: block; }
         
         .jogos-container { max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: white; clear: both; }
-        
-        .jogo-linha-publico { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px; border-bottom: 1px solid #edf2f7; gap: 4px; }
-        .jogo-linha-publico:last-child { border-bottom: none; }
-        .jogo-linha-publico .time-box { width: 38%; }
-        .jogo-linha-publico .placar-inputs { width: 24%; }
 
-        .jogo-linha-admin { display: flex; align-items: center; padding: 10px 2px; border-bottom: 1px solid #edf2f7; gap: 6px; }
+        /* ── Layout de cada linha de jogo ── */
+        /* Estrutura: [bandeira | nome] [placar] [nome | bandeira] [🧹?]
+           Usamos grid para que as colunas nunca se sobreponham */
+
+        .jogo-linha-publico,
+        .jogo-linha-admin {
+            display: grid;
+            align-items: center;
+            padding: 8px 4px;
+            border-bottom: 1px solid #edf2f7;
+            gap: 4px;
+        }
+        .jogo-linha-publico:last-child,
         .jogo-linha-admin:last-child { border-bottom: none; }
-        .jogo-linha-admin .time-box.esquerdo { width: 34%; justify-content: flex-end; text-align: right; }
-        .jogo-linha-admin .placar-inputs { width: 22%; justify-content: center; }
-        .jogo-linha-admin .time-box.direito { width: 34%; justify-content: flex-start; text-align: left; }
-        .jogo-linha-admin .limpar-box { width: 10%; display: flex; justify-content: center; }
-        
-        .time-box { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; word-break: break-word; }
-        .time-box.esquerdo { justify-content: flex-end; text-align: right; }
-        .time-box.direito { justify-content: flex-start; text-align: left; }
-        
+
+        /* Público: bandeira+nome | placar | nome+bandeira */
+        .jogo-linha-publico {
+            grid-template-columns: 1fr 80px 1fr;
+        }
+
+        /* Admin: bandeira+nome | placar | nome+bandeira | 🧹 */
+        .jogo-linha-admin {
+            grid-template-columns: 1fr 80px 1fr 28px;
+        }
+
+        .time-box {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 500;
+            overflow: hidden;          /* evita vazamento */
+            min-width: 0;              /* permite shrink no grid */
+        }
+        .time-box span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .time-box.esquerdo { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+        .time-box.esquerdo span { text-align: right; }
+        .time-box.direito  { justify-content: flex-start; flex-direction: row; text-align: left; }
+
+        /* Em telas maiores, nome completo sem corte */
+        @media (min-width: 480px) {
+            .time-box { font-size: 12px; }
+            .time-box span { white-space: normal; overflow: visible; text-overflow: unset; }
+            .jogo-linha-publico { grid-template-columns: 1fr 88px 1fr; }
+            .jogo-linha-admin   { grid-template-columns: 1fr 88px 1fr 30px; }
+        }
+
         .flag-img { width: 20px; height: 14px; object-fit: cover; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.15); flex-shrink: 0; }
         
-        .placar-inputs { display: flex; align-items: center; gap: 4px; }
-        .placar-inputs input { width: 36px; height: 32px; text-align: center; padding: 0; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; font-size: 16px; box-sizing: border-box; appearance: textfield; -moz-appearance: textfield; }
+        .placar-inputs { display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .placar-inputs input { width: 32px; height: 32px; text-align: center; padding: 0; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; font-size: 15px; box-sizing: border-box; appearance: textfield; -moz-appearance: textfield; flex-shrink: 0; }
         .placar-inputs input::-webkit-outer-spin-button, .placar-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .placar-inputs input:disabled { background: #f1f5f9; color: #334155; border-color: #e2e8f0; cursor: not-allowed; opacity: 1; }
-        .placar-inputs span { font-weight: bold; color: #94a3b8; font-size: 12px; }
+        .placar-inputs span { font-weight: bold; color: #94a3b8; font-size: 12px; flex-shrink: 0; }
         
         .btn-clear-single { background: #e2e8f0; color: #64748b; border: none; width: 28px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; box-sizing: border-box; padding: 0; }
         .btn-clear-single:hover { background: #fee2e2; color: var(--danger); }
@@ -489,9 +524,7 @@
                     <img class="flag-img" src="https://flagcdn.com/w40/${jogo.b2}.png" alt="${jogo.t2}">
                     <span>${jogo.t2}</span>
                 </div>
-                <div class="limpar-box">
-                    <button class="btn-clear-single" onclick="limparJogoIndividual('${jogo.id}')" title="Limpar">🧹</button>
-                </div>
+                <button class="btn-clear-single" onclick="limparJogoIndividual('${jogo.id}')" title="Limpar">🧹</button>
             `;
             container.appendChild(div);
         });
