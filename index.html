@@ -7,110 +7,316 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+
         :root {
-            --primary: #2c3e50;
-            --success: #27ae60;
-            --accent: #2980b9;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --bg: #f5f7fa;
-            --card: #ffffff;
-            --text: #333333;
-            --border: #cbd5e1;
+            --verde:    #009c3b;
+            --verde-esc:#006428;
+            --amarelo:  #FFDF00;
+            --amarelo-esc: #c9ae00;
+            --azul:     #002776;
+            --azul-med: #1a3a8f;
+            --branco:   #ffffff;
+            --bg:       #0a1a0d;
+            --card-bg:  #0f2414;
+            --card-brd: #1e4025;
+            --text:     #e8f5e9;
+            --text-dim: #81c784;
+            --border:   #1b5e20;
+            --danger:   #e53935;
+            --danger-esc:#b71c1c;
         }
-        
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: var(--text); }
-        .container { max-width: 1100px; margin: 0 auto; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); box-sizing: border-box; }
-        
-        h1, h2, h3 { color: var(--primary); margin-top: 0; }
-        h1 { font-size: 20px; text-align: center; border-bottom: 3px solid var(--accent); padding-bottom: 12px; margin-bottom: 20px; }
-        h2 { font-size: 18px; }
-        
-        .tabs-menu { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
-        .tab-btn { flex: 1; background: #e2e8f0; color: #64748b; padding: 12px 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px; text-align: center; }
-        .tab-btn:hover { background: #cbd5e1; color: var(--primary); }
-        .tab-btn.active { background: var(--accent); color: white; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(0,156,59,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(255,223,0,0.08) 0%, transparent 60%);
+            margin: 0;
+            padding: 10px;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-brd);
+            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* ── HEADER ── */
+        .site-header {
+            background: linear-gradient(135deg, var(--verde-esc) 0%, var(--verde) 50%, var(--verde-esc) 100%);
+            background-size: 400% 400%;
+            animation: grassShift 8s ease infinite;
+            padding: 22px 20px 18px;
+            text-align: center;
+            position: relative;
+            border-bottom: 4px solid var(--amarelo);
+        }
+        @keyframes grassShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .site-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 40px,
+                transparent 40px, transparent 80px
+            );
+            pointer-events: none;
+        }
+        .site-header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            letter-spacing: 3px;
+            color: var(--amarelo);
+            text-shadow: 2px 2px 0 var(--verde-esc), 0 0 20px rgba(255,223,0,0.4);
+            margin: 0 0 4px;
+            border: none;
+            padding: 0;
+        }
+        .site-header .subtitle {
+            font-size: 11px;
+            color: rgba(255,255,255,0.75);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .header-badge {
+            display: inline-block;
+            background: var(--amarelo);
+            color: var(--verde-esc);
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: 1px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .inner-pad { padding: 16px; }
+
+        h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: var(--amarelo);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h2::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, var(--amarelo), transparent);
+            border-radius: 2px;
+        }
+        h3 { color: var(--amarelo); font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; font-size: 18px; margin-top: 0; }
+
+        /* ── TABS ── */
+        .tabs-menu {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-bottom: 3px solid var(--amarelo);
+            background: #071209;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-dim);
+            padding: 14px 8px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+        .tab-btn:hover { background: rgba(0,156,59,0.15); color: var(--branco); }
+        .tab-btn.active {
+            background: rgba(255,223,0,0.08);
+            color: var(--amarelo);
+            border-bottom: 3px solid var(--amarelo);
+        }
 
         .aba-conteudo { display: none; }
         .aba-conteudo.active { display: block; }
 
-        .login-box { max-width: 100%; margin: 20px auto; text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 20px; border-radius: 8px; box-sizing: border-box; }
-        .login-box input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid var(--border); border-radius: 6px; text-align: center; margin-bottom: 15px; box-sizing: border-box; }
-        
-        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+        /* ── CARDS ── */
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-brd);
+            padding: 16px;
+            border-radius: 10px;
+            height: fit-content;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--verde), var(--amarelo), var(--verde));
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
         @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-        
-        .card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; height: fit-content; box-sizing: border-box; }
-        
-        textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical; box-sizing: border-box; margin-bottom: 15px; }
-        select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 15px; margin-bottom: 15px; background-color: white; box-sizing: border-box; }
-        
-        button { width: 100%; background-color: var(--success); color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; box-sizing: border-box; }
-        button:hover { background-color: #219150; }
-        .btn-calc { background-color: var(--accent); margin-top: 15px; }
-        .btn-calc:hover { background-color: #1f6b9c; }
-        .btn-danger { background-color: var(--danger); margin-top: 15px; font-size: 14px; padding: 12px; }
-        .btn-danger:hover { background-color: #c0392b; }
-        
-        .btn-clear-results { background-color: #64748b; font-size: 11px; padding: 6px 10px; width: auto; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 5px; float: right; }
-        .btn-clear-results:hover { background-color: #475569; }
-        
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .status-saved { background: #dcfce7; color: #15803d; }
-        .status-empty { background: #fee2e2; color: #b91c1c; }
 
-        /* Banner de status do Firebase */
-        #fbStatus { display: none; position: fixed; bottom: 15px; right: 15px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.4s; }
-        #fbStatus.saving  { background: #fef9c3; color: #854d0e; display: block; }
-        #fbStatus.success { background: #dcfce7; color: #15803d; display: block; }
-        #fbStatus.error   { background: #fee2e2; color: #b91c1c; display: block; }
-        
-        .jogos-container { max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: white; clear: both; }
+        /* ── INPUTS / SELECTS / TEXTAREA ── */
+        textarea, select, input[type="password"] {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.4);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            margin-bottom: 12px;
+        }
+        textarea { height: 150px; font-family: monospace; font-size: 13px; resize: vertical; }
+        select option { background: #0f2414; }
+        textarea:focus, select:focus, input:focus { outline: 2px solid var(--verde); border-color: var(--verde); }
 
-        /* ── Layout de cada linha de jogo ── */
-        /* Estrutura: [bandeira | nome] [placar] [nome | bandeira] [🧹?]
-           Usamos grid para que as colunas nunca se sobreponham */
+        /* ── BUTTONS ── */
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--verde) 0%, var(--verde-esc) 100%);
+            color: white;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        button:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,156,59,0.4); }
+        button:active { transform: translateY(0); }
 
+        .btn-calc {
+            background: linear-gradient(135deg, var(--azul-med), var(--azul));
+            margin-top: 12px;
+        }
+        .btn-calc:hover { box-shadow: 0 4px 15px rgba(0,39,118,0.5); }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), var(--danger-esc));
+            margin-top: 12px;
+            font-size: 13px;
+            padding: 11px;
+        }
+        .btn-danger:hover { box-shadow: 0 4px 15px rgba(229,57,53,0.4); }
+
+        .btn-clear-results {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            font-size: 11px;
+            padding: 6px 10px;
+            width: auto;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            float: right;
+            letter-spacing: 0;
+        }
+        .btn-clear-results:hover { background: rgba(229,57,53,0.2); color: #ef9a9a; transform: none; box-shadow: none; }
+
+        /* ── LOGIN BOX ── */
+        .login-box {
+            max-width: 100%;
+            margin: 20px auto;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            padding: 24px 20px;
+            border-radius: 12px;
+        }
+        .login-box input { text-align: center; margin-bottom: 12px; }
+
+        /* ── STATUS BADGE ── */
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+        .status-saved { background: rgba(0,156,59,0.2); color: #69f0ae; border: 1px solid rgba(0,156,59,0.4); }
+        .status-empty { background: rgba(229,57,53,0.15); color: #ef9a9a; border: 1px solid rgba(229,57,53,0.3); }
+
+        /* ── FIREBASE STATUS BANNER ── */
+        #fbStatus {
+            display: none;
+            position: fixed; bottom: 15px; right: 15px;
+            padding: 10px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 700;
+            z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: opacity 0.4s;
+        }
+        #fbStatus.saving  { background: #1a2e00; color: var(--amarelo); border: 1px solid var(--verde); display: block; }
+        #fbStatus.success { background: #0a2e0a; color: #69f0ae;       border: 1px solid var(--verde); display: block; }
+        #fbStatus.error   { background: #2e0a0a; color: #ef9a9a;       border: 1px solid var(--danger); display: block; }
+
+        /* ── JOGOS CONTAINER ── */
+        .jogos-container {
+            max-height: 450px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            padding: 4px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.25);
+            clear: both;
+        }
+        .jogos-container::-webkit-scrollbar { width: 5px; }
+        .jogos-container::-webkit-scrollbar-track { background: transparent; }
+        .jogos-container::-webkit-scrollbar-thumb { background: var(--verde); border-radius: 3px; }
+
+        /* ── LINHAS DE JOGO ── */
         .jogo-linha-publico,
         .jogo-linha-admin {
             display: grid;
             align-items: center;
-            padding: 8px 4px;
-            border-bottom: 1px solid #edf2f7;
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             gap: 4px;
+            transition: background 0.15s;
         }
+        .jogo-linha-publico:hover,
+        .jogo-linha-admin:hover { background: rgba(0,156,59,0.08); }
         .jogo-linha-publico:last-child,
         .jogo-linha-admin:last-child { border-bottom: none; }
 
-        /* Público: bandeira+nome | placar | nome+bandeira */
-        .jogo-linha-publico {
-            grid-template-columns: 1fr 80px 1fr;
-        }
-
-        /* Admin: bandeira+nome | placar | nome+bandeira | 🧹 */
-        .jogo-linha-admin {
-            grid-template-columns: 1fr 80px 1fr 28px;
-        }
+        .jogo-linha-publico { grid-template-columns: 1fr 80px 1fr; }
+        .jogo-linha-admin   { grid-template-columns: 1fr 80px 1fr 28px; }
 
         .time-box {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            font-weight: 500;
-            overflow: hidden;          /* evita vazamento */
-            min-width: 0;              /* permite shrink no grid */
+            display: flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 500;
+            overflow: hidden; min-width: 0;
+            color: var(--text);
         }
-        .time-box span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+        .time-box span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .time-box.esquerdo { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
         .time-box.esquerdo span { text-align: right; }
-        .time-box.direito  { justify-content: flex-start; flex-direction: row; text-align: left; }
+        .time-box.direito  { justify-content: flex-start; text-align: left; }
 
-        /* Em telas maiores, nome completo sem corte */
         @media (min-width: 480px) {
             .time-box { font-size: 12px; }
             .time-box span { white-space: normal; overflow: visible; text-overflow: unset; }
@@ -118,49 +324,105 @@
             .jogo-linha-admin   { grid-template-columns: 1fr 88px 1fr 30px; }
         }
 
-        .flag-img { width: 20px; height: 14px; object-fit: cover; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.15); flex-shrink: 0; }
-        
-        .placar-inputs { display: flex; align-items: center; justify-content: center; gap: 3px; }
-        .placar-inputs input { width: 32px; height: 32px; text-align: center; padding: 0; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; font-size: 15px; box-sizing: border-box; appearance: textfield; -moz-appearance: textfield; flex-shrink: 0; }
-        .placar-inputs input::-webkit-outer-spin-button, .placar-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .placar-inputs input:disabled { background: #f1f5f9; color: #334155; border-color: #e2e8f0; cursor: not-allowed; opacity: 1; }
-        .placar-inputs span { font-weight: bold; color: #94a3b8; font-size: 12px; flex-shrink: 0; }
-        
-        .btn-clear-single { background: #e2e8f0; color: #64748b; border: none; width: 28px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; box-sizing: border-box; padding: 0; }
-        .btn-clear-single:hover { background: #fee2e2; color: var(--danger); }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-radius: 8px; overflow: hidden; font-size: 14px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: var(--primary); color: white; font-weight: 600; }
-        tr:nth-child(even) { background-color: #f8fafc; }
-        .podium { font-weight: bold; background-color: #f0fdf4 !important; color: var(--success); }
-        
-        .list-players { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 8px; margin-top: 10px; }
-        .player-chip { background: #edf2f7; padding: 8px 6px; border-radius: 6px; text-align: center; font-size: 11px; border: 1px solid #e2e8f0; }
-        
-        .chip-actions { display: flex; gap: 4px; margin-top: 6px; justify-content: center; }
-        .btn-chip-action { flex: 1; font-size: 10px; padding: 4px 2px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; text-align: center; }
-        .btn-chip-view { background: #cbd5e1; color: #334155; }
-        .btn-chip-view:hover { background: #94a3b8; }
-        .btn-chip-delete { background: #fee2e2; color: #b91c1c; }
-        .btn-chip-delete:hover { background: #fca5a5; }
+        .flag-img { width: 22px; height: 15px; object-fit: cover; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); flex-shrink: 0; }
 
-        .db-inspector { background: #1e293b; color: #38bdf8; font-family: monospace; padding: 12px; border-radius: 6px; max-height: 200px; overflow-y: auto; font-size: 11px; display: none; margin-top: 15px; white-space: pre-wrap; border: 1px solid #0f172a; }
+        /* ── PLACAR ── */
+        .placar-inputs { display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .placar-inputs input {
+            width: 32px; height: 32px;
+            text-align: center; padding: 0;
+            border: 1px solid var(--verde);
+            border-radius: 6px;
+            font-weight: 800; font-size: 15px;
+            background: rgba(0,100,40,0.3);
+            color: var(--amarelo);
+            box-sizing: border-box;
+            appearance: textfield; -moz-appearance: textfield;
+            flex-shrink: 0;
+        }
+        .placar-inputs input:focus { outline: 2px solid var(--amarelo); border-color: var(--amarelo); }
+        .placar-inputs input::-webkit-outer-spin-button,
+        .placar-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .placar-inputs input:disabled {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            border-color: var(--border);
+            cursor: not-allowed; opacity: 1;
+        }
+        .placar-inputs span { font-weight: 700; color: var(--text-dim); font-size: 13px; flex-shrink: 0; }
+
+        .btn-clear-single {
+            background: rgba(255,255,255,0.06);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            width: 28px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; cursor: pointer; font-size: 11px;
+            transition: all 0.2s; box-sizing: border-box; padding: 0;
+        }
+        .btn-clear-single:hover { background: rgba(229,57,53,0.2); color: #ef9a9a; transform: none; box-shadow: none; }
+
+        /* ── RANKING TABLE ── */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background: linear-gradient(135deg, var(--verde-esc), var(--azul)); color: var(--amarelo); font-weight: 700; font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; }
+        tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+        tr:hover td { background: rgba(0,156,59,0.08); }
+        .podium td { background: rgba(255,223,0,0.07) !important; color: var(--amarelo) !important; font-weight: 700; }
+        .podium td:first-child::before { content: '🥇 '; }
+
+        /* ── PLAYER CHIPS ── */
+        .list-players { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 8px; margin-top: 10px; }
+        .player-chip {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            padding: 10px 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text);
+            transition: border-color 0.2s;
+        }
+        .player-chip:hover { border-color: var(--verde); }
+        .player-chip strong { color: var(--amarelo); }
+
+        .chip-actions { display: flex; gap: 4px; margin-top: 8px; justify-content: center; }
+        .btn-chip-action { flex: 1; font-size: 10px; padding: 5px 2px; border-radius: 5px; border: none; cursor: pointer; font-weight: 700; text-align: center; width: auto; letter-spacing: 0; }
+        .btn-chip-view   { background: rgba(255,255,255,0.1); color: var(--text); }
+        .btn-chip-view:hover { background: rgba(255,255,255,0.2); transform: none; box-shadow: none; }
+        .btn-chip-delete { background: rgba(229,57,53,0.2); color: #ef9a9a; }
+        .btn-chip-delete:hover { background: rgba(229,57,53,0.35); transform: none; box-shadow: none; }
+
+        /* ── DB INSPECTOR ── */
+        .db-inspector {
+            background: #020d04;
+            color: #69f0ae;
+            font-family: monospace;
+            padding: 12px; border-radius: 6px;
+            max-height: 200px; overflow-y: auto;
+            font-size: 11px; display: none;
+            margin-top: 12px; white-space: pre-wrap;
+            border: 1px solid var(--verde);
+        }
     </style>
 </head>
 <body>
 
-<!-- Banner de status das operações Firebase -->
 <div id="fbStatus"></div>
 
 <div class="container">
-    <h1>Painel do Bolão Oficial — Copa 2026</h1>
-    
+    <div class="site-header">
+        <div class="header-badge">🇧🇷 Bolão Oficial</div>
+        <h1>⚽ Copa do Mundo 2026</h1>
+        <div class="subtitle">Painel de Palpites &amp; Ranking</div>
+    </div>
+
     <div class="tabs-menu">
         <button id="btnAbaPublico" class="tab-btn active" onclick="mudarAba('publico')">📊 Resultados & Ranking</button>
         <button id="btnAbaAdmin" class="tab-btn" onclick="mudarAba('admin')">⚙️ Administração</button>
     </div>
 
+    <div class="inner-pad">
     <div id="abaPublico" class="aba-conteudo active">
         <div class="grid">
             <div class="card">
@@ -194,9 +456,9 @@
         </div>
 
         <div id="painelGerenciamento" style="display: none;">
-            <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px; border-radius: 6px; font-weight: 500; font-size: 13px; margin-bottom: 20px; overflow: hidden;">
+            <div style="background: rgba(0,100,40,0.25); border: 1px solid var(--verde); color: var(--amarelo); padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13px; margin-bottom: 20px; overflow: hidden;">
                 <span>🔓 Modo Admin Ativo.</span>
-                <button onclick="fazerLogout()" style="width:auto; float:right; background:#3b82f6; padding: 4px 10px; font-size:11px;">Sair</button>
+                <button onclick="fazerLogout()" style="width:auto; float:right; background:rgba(255,255,255,0.15); padding: 4px 10px; font-size:11px; color:white; border:1px solid rgba(255,255,255,0.3);">Sair</button>
             </div>
 
             <div class="grid">
@@ -216,8 +478,8 @@
 
                     <!-- Sub-abas -->
                     <div style="display:flex; gap:6px; margin-bottom:12px;">
-                        <button id="btnModoTexto"  onclick="mudarModoImport('texto')"  style="flex:1;padding:8px;font-size:12px;background:#2980b9;color:white;">📋 Importar Texto</button>
-                        <button id="btnModoEditor" onclick="mudarModoImport('editor')" style="flex:1;padding:8px;font-size:12px;background:#e2e8f0;color:#334155;">✏️ Editar Jogo a Jogo</button>
+                        <button id="btnModoTexto"  onclick="mudarModoImport('texto')"  style="flex:1;padding:8px;font-size:12px;">📋 Importar Texto</button>
+                        <button id="btnModoEditor" onclick="mudarModoImport('editor')" style="flex:1;padding:8px;font-size:12px;background:rgba(255,255,255,0.07);color:var(--text-dim);">✏️ Editar Jogo a Jogo</button>
                     </div>
 
                     <!-- Modo texto -->
@@ -235,18 +497,18 @@
                             <option value="">— Selecione o jogo —</option>
                         </select>
 
-                        <div id="editorJogoArea" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:12px; margin-bottom:12px;">
+                        <div id="editorJogoArea" style="display:none; background:rgba(0,80,30,0.3); border:1px solid var(--verde); border-radius:8px; padding:12px; margin-bottom:12px;">
                             <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px;">
                                 <div id="editorTime1" style="text-align:right; font-weight:600; font-size:13px; flex:1;"></div>
                                 <div style="display:flex; align-items:center; gap:6px;">
-                                    <input type="number" id="editorG1" min="0" style="width:44px;height:40px;text-align:center;font-size:18px;font-weight:bold;border:2px solid #2980b9;border-radius:6px;padding:0;">
+                                    <input type="number" id="editorG1" min="0" style="width:44px;height:40px;text-align:center;font-size:18px;font-weight:bold;border:2px solid var(--amarelo);border-radius:6px;padding:0;background:rgba(0,0,0,0.4);color:var(--amarelo);">
                                     <span style="font-weight:bold; color:#94a3b8;">x</span>
-                                    <input type="number" id="editorG2" min="0" style="width:44px;height:40px;text-align:center;font-size:18px;font-weight:bold;border:2px solid #2980b9;border-radius:6px;padding:0;">
+                                    <input type="number" id="editorG2" min="0" style="width:44px;height:40px;text-align:center;font-size:18px;font-weight:bold;border:2px solid var(--amarelo);border-radius:6px;padding:0;background:rgba(0,0,0,0.4);color:var(--amarelo);">
                                 </div>
                                 <div id="editorTime2" style="text-align:left; font-weight:600; font-size:13px; flex:1;"></div>
                             </div>
-                            <div id="editorPalpiteAtual" style="text-align:center; font-size:11px; color:#64748b; margin-bottom:10px;"></div>
-                            <button onclick="salvarPalpiteIndividual()" style="background:#2980b9;">💾 Salvar este palpite</button>
+                            <div id="editorPalpiteAtual" style="text-align:center; font-size:11px; color:var(--text-dim); margin-bottom:10px;"></div>
+                            <button onclick="salvarPalpiteIndividual()" >💾 Salvar este palpite</button>
                         </div>
                     </div>
                 </div>
@@ -271,7 +533,8 @@
             </div>
         </div>
     </div>
-</div>
+</div><!-- /inner-pad -->
+</div><!-- /container -->
 
 <!-- =====================================================
      FIREBASE SDK (módulos ES)
@@ -641,10 +904,10 @@
         const isEditor = modo === 'editor';
         document.getElementById('modoTexto').style.display  = isEditor ? 'none'  : 'block';
         document.getElementById('modoEditor').style.display = isEditor ? 'block' : 'none';
-        document.getElementById('btnModoTexto').style.background  = isEditor ? '#e2e8f0' : '#2980b9';
-        document.getElementById('btnModoTexto').style.color       = isEditor ? '#334155' : 'white';
-        document.getElementById('btnModoEditor').style.background = isEditor ? '#2980b9' : '#e2e8f0';
-        document.getElementById('btnModoEditor').style.color      = isEditor ? 'white'   : '#334155';
+        document.getElementById('btnModoTexto').style.background  = isEditor ? 'rgba(255,255,255,0.07)' : 'var(--verde)';
+        document.getElementById('btnModoTexto').style.color       = isEditor ? 'var(--text-dim)' : 'white';
+        document.getElementById('btnModoEditor').style.background = isEditor ? 'var(--verde)' : 'rgba(255,255,255,0.07)';
+        document.getElementById('btnModoEditor').style.color      = isEditor ? 'white'   : 'var(--text-dim)';
         if (isEditor) popularSelectJogos();
     }
     window.mudarModoImport = mudarModoImport;
