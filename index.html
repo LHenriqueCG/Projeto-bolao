@@ -60,7 +60,7 @@
             border-bottom: 4px solid var(--amarelo);
         }
 
-        /* faixas de gramado animadas */
+        /* faixas de gramado — movimento por steps, sem drift */
         .site-header::before {
             content: '';
             position: absolute; inset: 0;
@@ -70,11 +70,12 @@
                     rgba(0,120,48,0.55) 0px, rgba(0,120,48,0.55) 44px,
                     rgba(0,98,40,0.55) 44px, rgba(0,98,40,0.55) 88px
                 );
-            animation: grassScroll 3s linear infinite;
+            background-size: 88px 100%;
+            animation: grassScroll 6s steps(88, end) infinite;
         }
         @keyframes grassScroll {
-            from { background-position-x: 0; }
-            to   { background-position-x: 88px; }
+            from { background-position: 0 0; }
+            to   { background-position: 88px 0; }
         }
 
         /* camada escura p/ legibilidade */
@@ -298,7 +299,6 @@
 
         /* ══ LOGIN ══════════════════════════════════════════ */
         .login-box {
-<<<<<<< HEAD
             max-width: 420px;
             margin: 30px auto;
             text-align: center;
@@ -387,17 +387,6 @@
             opacity: 0.5; cursor: not-allowed;
             transform: none; filter: none; box-shadow: none;
         }
-=======
-            max-width: 100%;
-            margin: 20px auto;
-            text-align: center;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            padding: 28px 20px;
-            border-radius: 14px;
-        }
-        .login-box input { text-align: center; margin-bottom: 12px; }
->>>>>>> 4e920a49e5e434f9eabcc77b38d02302f465202a
 
         /* ══ STATUS BADGE ══════════════════════════════════ */
         .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
@@ -830,7 +819,6 @@
 
         /* Linhas clicáveis (modo integrante) */
         .palpite-linha[onclick]:hover { background: rgba(255,223,0,0.05) !important; }
-<<<<<<< HEAD
 
         /* ══ LOGIN — extras ══════════════════════════════════ */
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -846,8 +834,92 @@
             margin-bottom: 14px;
         }
         .senha-toggle svg { display: block; }
-=======
->>>>>>> 4e920a49e5e434f9eabcc77b38d02302f465202a
+
+        /* ══ ABAS DE RODADA ═════════════════════════════════ */
+        .rodada-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .rodada-tab {
+            flex: 1;
+            padding: 8px 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.04);
+            color: var(--text-dim);
+            letter-spacing: 0.3px;
+            transition: all 0.18s;
+        }
+        .rodada-tab:hover:not(.active) {
+            background: rgba(0,156,59,0.10);
+            color: var(--text);
+            transform: none;
+            box-shadow: none;
+        }
+        .rodada-tab.active {
+            background: linear-gradient(135deg, var(--verde-esc), var(--verde));
+            color: var(--amarelo);
+            border-color: var(--verde);
+            box-shadow: 0 2px 10px rgba(0,156,59,0.3);
+        }
+        .rodada-tab:active { transform: scale(0.97); }
+
+        /* ══ SEPARADOR DE RODADA ════════════════════════════ */
+        .rodada-separador {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 6px 6px;
+            margin-top: 4px;
+        }
+        .rodada-separador::before,
+        .rodada-separador::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,223,0,0.3));
+        }
+        .rodada-separador::after {
+            background: linear-gradient(to left, transparent, rgba(255,223,0,0.3));
+        }
+        .rodada-separador span {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--amarelo);
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+        .rodada-separador:first-child {
+            margin-top: 0;
+            padding-top: 4px;
+        }
+
+        /* ══ DATA DO JOGO ══════════════════════════════════ */
+        .jogo-data {
+            grid-column: 1 / -1;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding-bottom: 2px;
+            opacity: 0.75;
+        }
+
+        /* A linha pública com data precisa de uma linha extra no grid */
+        .jogo-linha-publico.jogo-clicavel {
+            grid-template-columns: 1fr 80px 1fr 20px;
+            grid-template-rows: auto auto;
+        }
+        @media (min-width: 480px) {
+            .jogo-linha-publico.jogo-clicavel {
+                grid-template-columns: 1fr 88px 1fr 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -888,7 +960,6 @@
 
             <div class="card">
                 <h2>⚽ Placares Oficiais</h2>
-                <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;">Resultados reais das partidas para conferência.</p>
                 <div id="listaJogosPublico" class="jogos-container"></div>
             </div>
         </div>
@@ -1193,78 +1264,81 @@
     const integrantes = ["Diego","Duda","Leo","Adriana","Elmir","Henrique","Saad","Thavynne","Cadu","Lourdinha","Rodrigo","Rô","Samuel","Barbara","Robson"];
 
     const jogosCopa = [
-        { id: "méxico-áfrica do sul", t1: "México", b1: "mx", t2: "África do Sul", b2: "za" },
-        { id: "coreia do sul-tchéquia", t1: "Coreia do Sul", b1: "kr", t2: "Tchéquia", b2: "cz" },
-        { id: "canadá-bósnia", t1: "Canadá", b1: "ca", t2: "Bósnia", b2: "ba" },
-        { id: "estados unidos-paraguai", t1: "Estados Unidos", b1: "us", t2: "Paraguai", b2: "py" },
-        { id: "qatar-suíça", t1: "Qatar", b1: "qa", t2: "Suíça", b2: "ch" },
-        { id: "brasil-marrocos", t1: "Brasil", b1: "br", t2: "Marrocos", b2: "ma" },
-        { id: "haiti-escócia", t1: "Haiti", b1: "ht", t2: "Escócia", b2: "gb-sct" },
-        { id: "austrália-turquia", t1: "Austrália", b1: "au", t2: "Turquia", b2: "tr" },
-        { id: "alemanha-curaçao", t1: "Alemanha", b1: "de", t2: "Curaçao", b2: "cw" },
-        { id: "holanda-japão", t1: "Holanda", b1: "nl", t2: "Japão", b2: "jp" },
-        { id: "costa do marfim-equador", t1: "Costa do Marfim", b1: "ci", t2: "Equador", b2: "ec" },
-        { id: "suécia-tunísia", t1: "Suécia", b1: "se", t2: "Tunísia", b2: "tn" },
-        { id: "espanha-cabo verde", t1: "Espanha", b1: "es", t2: "Cabo Verde", b2: "cv" },
-        { id: "bélgica-egito", t1: "Bélgica", b1: "be", t2: "Egito", b2: "eg" },
-        { id: "arábia saudita-uruguai", t1: "Arábia Saudita", b1: "sa", t2: "Uruguai", b2: "uy" },
-        { id: "irã-nova zelândia", t1: "Irã", b1: "ir", t2: "Nova Zelândia", b2: "nz" },
-        { id: "frança-senegal", t1: "França", b1: "fr", t2: "Senegal", b2: "sn" },
-        { id: "iraque-noruega", t1: "Iraque", b1: "iq", t2: "Noruega", b2: "no" },
-        { id: "argentina-argélia", t1: "Argentina", b1: "ar", t2: "Argélia", b2: "dz" },
-        { id: "áustria-jordânia", t1: "Áustria", b1: "at", t2: "Jordânia", b2: "jo" },
-        { id: "portugal-rd congo", t1: "Portugal", b1: "pt", t2: "RD Congo", b2: "cd" },
-        { id: "inglaterra-croácia", t1: "Inglaterra", b1: "gb-eng", t2: "Croácia", b2: "hr" },
-        { id: "gana-panamá", t1: "Gana", b1: "gh", t2: "Panamá", b2: "pa" },
-        { id: "uzbequistão-colômbia", t1: "Uzbequistão", b1: "uz", t2: "Colômbia", b2: "co" },
-        { id: "tchéquia-áfrica do sul", t1: "Tchéquia", b1: "cz", t2: "África do Sul", b2: "za" },
-        { id: "suíça-bósnia", t1: "Suíça", b1: "ch", t2: "Bósnia", b2: "ba" },
-        { id: "canadá-qatar", t1: "Canadá", b1: "ca", t2: "Qatar", b2: "qa" },
-        { id: "méxico-coreia do sul", t1: "México", b1: "mx", t2: "Coreia do Sul", b2: "kr" },
-        { id: "estados unidos-austrália", t1: "Estados Unidos", b1: "us", t2: "Austrália", b2: "au" },
-        { id: "escócia-marrocos", t1: "Escócia", b1: "gb-sct", t2: "Marrocos", b2: "ma" },
-        { id: "brasil-haiti", t1: "Brasil", b1: "br", t2: "Haiti", b2: "ht" },
-        { id: "turquia-paraguai", t1: "Turquia", b1: "tr", t2: "Paraguai", b2: "py" },
-        { id: "holanda-suécia", t1: "Holanda", b1: "nl", t2: "Suécia", b2: "se" },
-        { id: "alemanha-costa do marfim", t1: "Alemanha", b1: "de", t2: "Costa do Marfim", b2: "ci" },
-        { id: "equador-curaçao", t1: "Equador", b1: "ec", t2: "Curaçao", b2: "cw" },
-        { id: "tunísia-japão", t1: "Tunísia", b1: "tn", t2: "Japão", b2: "jp" },
-        { id: "espanha-arábia saudita", t1: "Espanha", b1: "es", t2: "Arábia Saudita", b2: "sa" },
-        { id: "bélgica-irã", t1: "Bélgica", b1: "be", t2: "Irã", b2: "ir" },
-        { id: "uruguai-cabo verde", t1: "Uruguai", b1: "uy", t2: "Cabo Verde", b2: "cv" },
-        { id: "nova zelândia-egito", t1: "Nova Zelândia", b1: "nz", t2: "Egito", b2: "eg" },
-        { id: "argentina-áustria", t1: "Argentina", b1: "ar", t2: "Áustria", b2: "at" },
-        { id: "frança-iraque", t1: "França", b1: "fr", t2: "Iraque", b2: "iq" },
-        { id: "noruega-senegal", t1: "Noruega", b1: "no", t2: "Senegal", b2: "sn" },
-        { id: "jordânia-argélia", t1: "Jordânia", b1: "jo", t2: "Argélia", b2: "dz" },
-        { id: "portugal-uzbequistão", t1: "Portugal", b1: "pt", t2: "Uzbequistão", b2: "uz" },
-        { id: "inglaterra-gana", t1: "Inglaterra", b1: "gb-eng", t2: "Gana", b2: "gh" },
-        { id: "panamá-croácia", t1: "Panamá", b1: "pa", t2: "Croácia", b2: "hr" },
-        { id: "colômbia-rd congo", t1: "Colômbia", b1: "co", t2: "RD Congo", b2: "cd" },
-        { id: "suíça-canadá", t1: "Suíça", b1: "ch", t2: "Canadá", b2: "ca" },
-        { id: "bósnia-qatar", t1: "Bósnia", b1: "ba", t2: "Qatar", b2: "qa" },
-        { id: "escócia-brasil", t1: "Escócia", b1: "gb-sct", t2: "Brasil", b2: "br" },
-        { id: "marrocos-haiti", t1: "Marrocos", b1: "ma", t2: "Haiti", b2: "ht" },
-        { id: "tchéquia-méxico", t1: "Tchéquia", b1: "cz", t2: "México", b2: "mx" },
-        { id: "áfrica do sul-coreia do sul", t1: "África do Sul", b1: "za", t2: "Coreia do Sul", b2: "kr" },
-        { id: "curaçao-costa do marfim", t1: "Curaçao", b1: "cw", t2: "Costa do Marfim", b2: "ci" },
-        { id: "equador-alemanha", t1: "Equador", b1: "ec", t2: "Alemanha", b2: "de" },
-        { id: "japão-suécia", t1: "Japão", b1: "jp", t2: "Suécia", b2: "se" },
-        { id: "tunísia-holanda", t1: "Tunísia", b1: "tn", t2: "Holanda", b2: "nl" },
-        { id: "turquia-estados unidos", t1: "Turquia", b1: "tr", t2: "Estados Unidos", b2: "us" },
-        { id: "paraguai-austrália", t1: "Paraguai", b1: "py", t2: "Austrália", b2: "au" },
-        { id: "noruega-frança", t1: "Noruega", b1: "no", t2: "França", b2: "fr" },
-        { id: "senegal-iraque", t1: "Senegal", b1: "sn", t2: "Iraque", b2: "iq" },
-        { id: "cabo verde-arábia saudita", t1: "Cabo Verde", b1: "cv", t2: "Arábia Saudita", b2: "sa" },
-        { id: "uruguai-espanha", t1: "Uruguai", b1: "uy", t2: "Espanha", b2: "es" },
-        { id: "nova zelândia-bélgica", t1: "Nova Zelândia", b1: "nz", t2: "Bélgica", b2: "be" },
-        { id: "egito-irã", t1: "Egito", b1: "eg", t2: "Irã", b2: "ir" },
-        { id: "panamá-inglaterra", t1: "Panamá", b1: "pa", t2: "Inglaterra", b2: "gb-eng" },
-        { id: "croácia-gana", t1: "Croácia", b1: "hr", t2: "Gana", b2: "gh" },
-        { id: "colômbia-portugal", t1: "Colômbia", b1: "co", t2: "Portugal", b2: "pt" },
-        { id: "rd congo-uzbequistão", t1: "RD Congo", b1: "cd", t2: "Uzbequistão", b2: "uz" },
-        { id: "argélia-áustria", t1: "Argélia", b1: "dz", t2: "Áustria", b2: "at" },
-        { id: "jordânia-argentina", t1: "Jordânia", b1: "jo", t2: "Argentina", b2: "ar" }
+        // ── RODADA 1 ──────────────────────────────────────────
+        { id: "méxico-áfrica do sul", data: "11/jun · Qui · 16h", t1: "México", b1: "mx", t2: "África do Sul", b2: "za", rodada: 1 },
+        { id: "coreia do sul-tchéquia", data: "11/jun · Qui · 23h", t1: "Coreia do Sul", b1: "kr", t2: "Tchéquia", b2: "cz", rodada: 1 },
+        { id: "canadá-bósnia", data: "12/jun · Sex · 16h", t1: "Canadá", b1: "ca", t2: "Bósnia", b2: "ba", rodada: 1 },
+        { id: "estados unidos-paraguai", data: "12/jun · Sex · 22h", t1: "Estados Unidos", b1: "us", t2: "Paraguai", b2: "py", rodada: 1 },
+        { id: "qatar-suíça", data: "13/jun · Sáb · 16h", t1: "Qatar", b1: "qa", t2: "Suíça", b2: "ch", rodada: 1 },
+        { id: "brasil-marrocos", data: "13/jun · Sáb · 19h", t1: "Brasil", b1: "br", t2: "Marrocos", b2: "ma", rodada: 1 },
+        { id: "haiti-escócia", data: "13/jun · Sáb · 22h", t1: "Haiti", b1: "ht", t2: "Escócia", b2: "gb-sct", rodada: 1 },
+        { id: "austrália-turquia", data: "14/jun · Dom · 01h", t1: "Austrália", b1: "au", t2: "Turquia", b2: "tr", rodada: 1 },
+        { id: "alemanha-curaçao", data: "14/jun · Dom · 14h", t1: "Alemanha", b1: "de", t2: "Curaçao", b2: "cw", rodada: 1 },
+        { id: "holanda-japão", data: "14/jun · Dom · 17h", t1: "Holanda", b1: "nl", t2: "Japão", b2: "jp", rodada: 1 },
+        { id: "costa do marfim-equador", data: "14/jun · Dom · 20h", t1: "Costa do Marfim", b1: "ci", t2: "Equador", b2: "ec", rodada: 1 },
+        { id: "suécia-tunísia", data: "14/jun · Dom · 23h", t1: "Suécia", b1: "se", t2: "Tunísia", b2: "tn", rodada: 1 },
+        { id: "espanha-cabo verde", data: "15/jun · Seg · 13h", t1: "Espanha", b1: "es", t2: "Cabo Verde", b2: "cv", rodada: 1 },
+        { id: "bélgica-egito", data: "15/jun · Seg · 16h", t1: "Bélgica", b1: "be", t2: "Egito", b2: "eg", rodada: 1 },
+        { id: "arábia saudita-uruguai", data: "15/jun · Seg · 19h", t1: "Arábia Saudita", b1: "sa", t2: "Uruguai", b2: "uy", rodada: 1 },
+        { id: "irã-nova zelândia", data: "15/jun · Seg · 22h", t1: "Irã", b1: "ir", t2: "Nova Zelândia", b2: "nz", rodada: 1 },
+        { id: "frança-senegal", data: "16/jun · Ter · 16h", t1: "França", b1: "fr", t2: "Senegal", b2: "sn", rodada: 1 },
+        { id: "iraque-noruega", data: "16/jun · Ter · 19h", t1: "Iraque", b1: "iq", t2: "Noruega", b2: "no", rodada: 1 },
+        { id: "argentina-argélia", data: "16/jun · Ter · 22h", t1: "Argentina", b1: "ar", t2: "Argélia", b2: "dz", rodada: 1 },
+        { id: "áustria-jordânia", data: "17/jun · Qua · 01h", t1: "Áustria", b1: "at", t2: "Jordânia", b2: "jo", rodada: 1 },
+        { id: "portugal-rd congo", data: "17/jun · Qua · 14h", t1: "Portugal", b1: "pt", t2: "RD Congo", b2: "cd", rodada: 1 },
+        { id: "inglaterra-croácia", data: "17/jun · Qua · 17h", t1: "Inglaterra", b1: "gb-eng", t2: "Croácia", b2: "hr", rodada: 1 },
+        { id: "gana-panamá", data: "17/jun · Qua · 20h", t1: "Gana", b1: "gh", t2: "Panamá", b2: "pa", rodada: 1 },
+        { id: "uzbequistão-colômbia", data: "17/jun · Qua · 23h", t1: "Uzbequistão", b1: "uz", t2: "Colômbia", b2: "co", rodada: 1 },
+        // ── RODADA 2 ──────────────────────────────────────────
+        { id: "tchéquia-áfrica do sul", data: "18/jun · Qui · 13h", t1: "Tchéquia", b1: "cz", t2: "África do Sul", b2: "za", rodada: 2 },
+        { id: "suíça-bósnia", data: "18/jun · Qui · 16h", t1: "Suíça", b1: "ch", t2: "Bósnia", b2: "ba", rodada: 2 },
+        { id: "canadá-qatar", data: "18/jun · Qui · 19h", t1: "Canadá", b1: "ca", t2: "Qatar", b2: "qa", rodada: 2 },
+        { id: "méxico-coreia do sul", data: "18/jun · Qui · 22h", t1: "México", b1: "mx", t2: "Coreia do Sul", b2: "kr", rodada: 2 },
+        { id: "estados unidos-austrália", data: "19/jun · Sex · 16h", t1: "Estados Unidos", b1: "us", t2: "Austrália", b2: "au", rodada: 2 },
+        { id: "escócia-marrocos", data: "19/jun · Sex · 19h", t1: "Escócia", b1: "gb-sct", t2: "Marrocos", b2: "ma", rodada: 2 },
+        { id: "brasil-haiti", data: "19/jun · Sex · 21h30", t1: "Brasil", b1: "br", t2: "Haiti", b2: "ht", rodada: 2 },
+        { id: "turquia-paraguai", data: "20/jun · Sáb · 01h", t1: "Turquia", b1: "tr", t2: "Paraguai", b2: "py", rodada: 2 },
+        { id: "holanda-suécia", data: "20/jun · Sáb · 14h", t1: "Holanda", b1: "nl", t2: "Suécia", b2: "se", rodada: 2 },
+        { id: "alemanha-costa do marfim", data: "20/jun · Sáb · 17h", t1: "Alemanha", b1: "de", t2: "Costa do Marfim", b2: "ci", rodada: 2 },
+        { id: "equador-curaçao", data: "20/jun · Sáb · 21h", t1: "Equador", b1: "ec", t2: "Curaçao", b2: "cw", rodada: 2 },
+        { id: "tunísia-japão", data: "21/jun · Dom · 01h", t1: "Tunísia", b1: "tn", t2: "Japão", b2: "jp", rodada: 2 },
+        { id: "espanha-arábia saudita", data: "21/jun · Dom · 13h", t1: "Espanha", b1: "es", t2: "Arábia Saudita", b2: "sa", rodada: 2 },
+        { id: "bélgica-irã", data: "21/jun · Dom · 16h", t1: "Bélgica", b1: "be", t2: "Irã", b2: "ir", rodada: 2 },
+        { id: "uruguai-cabo verde", data: "21/jun · Dom · 19h", t1: "Uruguai", b1: "uy", t2: "Cabo Verde", b2: "cv", rodada: 2 },
+        { id: "nova zelândia-egito", data: "21/jun · Dom · 22h", t1: "Nova Zelândia", b1: "nz", t2: "Egito", b2: "eg", rodada: 2 },
+        { id: "argentina-áustria", data: "22/jun · Seg · 14h", t1: "Argentina", b1: "ar", t2: "Áustria", b2: "at", rodada: 2 },
+        { id: "frança-iraque", data: "22/jun · Seg · 18h", t1: "França", b1: "fr", t2: "Iraque", b2: "iq", rodada: 2 },
+        { id: "noruega-senegal", data: "22/jun · Seg · 21h", t1: "Noruega", b1: "no", t2: "Senegal", b2: "sn", rodada: 2 },
+        { id: "jordânia-argélia", data: "23/jun · Ter · 00h", t1: "Jordânia", b1: "jo", t2: "Argélia", b2: "dz", rodada: 2 },
+        { id: "portugal-uzbequistão", data: "23/jun · Ter · 14h", t1: "Portugal", b1: "pt", t2: "Uzbequistão", b2: "uz", rodada: 2 },
+        { id: "inglaterra-gana", data: "23/jun · Ter · 17h", t1: "Inglaterra", b1: "gb-eng", t2: "Gana", b2: "gh", rodada: 2 },
+        { id: "panamá-croácia", data: "23/jun · Ter · 20h", t1: "Panamá", b1: "pa", t2: "Croácia", b2: "hr", rodada: 2 },
+        { id: "colômbia-rd congo", data: "23/jun · Ter · 23h", t1: "Colômbia", b1: "co", t2: "RD Congo", b2: "cd", rodada: 2 },
+        // ── RODADA 3 ──────────────────────────────────────────
+        { id: "suíça-canadá", data: "24/jun · Qua · 16h", t1: "Suíça", b1: "ch", t2: "Canadá", b2: "ca", rodada: 3 },
+        { id: "bósnia-qatar", data: "24/jun · Qua · 16h", t1: "Bósnia", b1: "ba", t2: "Qatar", b2: "qa", rodada: 3 },
+        { id: "escócia-brasil", data: "24/jun · Qua · 19h", t1: "Escócia", b1: "gb-sct", t2: "Brasil", b2: "br", rodada: 3 },
+        { id: "marrocos-haiti", data: "24/jun · Qua · 19h", t1: "Marrocos", b1: "ma", t2: "Haiti", b2: "ht", rodada: 3 },
+        { id: "tchéquia-méxico", data: "24/jun · Qua · 22h", t1: "Tchéquia", b1: "cz", t2: "México", b2: "mx", rodada: 3 },
+        { id: "áfrica do sul-coreia do sul", data: "24/jun · Qua · 22h", t1: "África do Sul", b1: "za", t2: "Coreia do Sul", b2: "kr", rodada: 3 },
+        { id: "curaçao-costa do marfim", data: "25/jun · Qui · 17h", t1: "Curaçao", b1: "cw", t2: "Costa do Marfim", b2: "ci", rodada: 3 },
+        { id: "equador-alemanha", data: "25/jun · Qui · 17h", t1: "Equador", b1: "ec", t2: "Alemanha", b2: "de", rodada: 3 },
+        { id: "japão-suécia", data: "25/jun · Qui · 20h", t1: "Japão", b1: "jp", t2: "Suécia", b2: "se", rodada: 3 },
+        { id: "tunísia-holanda", data: "25/jun · Qui · 20h", t1: "Tunísia", b1: "tn", t2: "Holanda", b2: "nl", rodada: 3 },
+        { id: "turquia-estados unidos", data: "25/jun · Qui · 23h", t1: "Turquia", b1: "tr", t2: "Estados Unidos", b2: "us", rodada: 3 },
+        { id: "paraguai-austrália", data: "25/jun · Qui · 23h", t1: "Paraguai", b1: "py", t2: "Austrália", b2: "au", rodada: 3 },
+        { id: "noruega-frança", data: "26/jun · Sex · 16h", t1: "Noruega", b1: "no", t2: "França", b2: "fr", rodada: 3 },
+        { id: "senegal-iraque", data: "26/jun · Sex · 16h", t1: "Senegal", b1: "sn", t2: "Iraque", b2: "iq", rodada: 3 },
+        { id: "cabo verde-arábia saudita", data: "26/jun · Sex · 21h", t1: "Cabo Verde", b1: "cv", t2: "Arábia Saudita", b2: "sa", rodada: 3 },
+        { id: "uruguai-espanha", data: "26/jun · Sex · 21h", t1: "Uruguai", b1: "uy", t2: "Espanha", b2: "es", rodada: 3 },
+        { id: "nova zelândia-bélgica", data: "27/jun · Sáb · 00h", t1: "Nova Zelândia", b1: "nz", t2: "Bélgica", b2: "be", rodada: 3 },
+        { id: "egito-irã", data: "27/jun · Sáb · 00h", t1: "Egito", b1: "eg", t2: "Irã", b2: "ir", rodada: 3 },
+        { id: "panamá-inglaterra", data: "27/jun · Sáb · 18h", t1: "Panamá", b1: "pa", t2: "Inglaterra", b2: "gb-eng", rodada: 3 },
+        { id: "croácia-gana", data: "27/jun · Sáb · 18h", t1: "Croácia", b1: "hr", t2: "Gana", b2: "gh", rodada: 3 },
+        { id: "colômbia-portugal", data: "27/jun · Sáb · 20h30", t1: "Colômbia", b1: "co", t2: "Portugal", b2: "pt", rodada: 3 },
+        { id: "rd congo-uzbequistão", data: "27/jun · Sáb · 20h30", t1: "RD Congo", b1: "cd", t2: "Uzbequistão", b2: "uz", rodada: 3 },
+        { id: "argélia-áustria", data: "27/jun · Sáb · 23h", t1: "Argélia", b1: "dz", t2: "Áustria", b2: "at", rodada: 3 },
+        { id: "jordânia-argentina", data: "27/jun · Sáb · 23h", t1: "Jordânia", b1: "jo", t2: "Argentina", b2: "ar", rodada: 3 }
     ];
 
     // ── Inicialização (chamada pelo módulo Firebase após carregar) ──
@@ -1388,12 +1462,29 @@
     function renderizarListaJogosPublico() {
         const container = document.getElementById('listaJogosPublico');
         container.innerHTML = '';
+        let rodadaAtual = 0;
+
         jogosCopa.forEach(jogo => {
+            // Separador de rodada — aparece uma vez por rodada
+            if (jogo.rodada !== rodadaAtual) {
+                rodadaAtual = jogo.rodada;
+                const sep = document.createElement('div');
+                sep.className = 'rodada-separador';
+                sep.innerHTML = `<span>— ${rodadaAtual}ª Rodada —</span>`;
+                container.appendChild(sep);
+            }
+
+            // Data/hora do jogo (BRT)
+            const dataHora = jogo.data
+                ? `<div class="jogo-data">${jogo.data}</div>`
+                : '';
+
             const div = document.createElement('div');
             div.className = 'jogo-linha-publico jogo-clicavel';
             div.title = 'Ver palpites deste jogo';
             div.setAttribute('onclick', `abrirExplorerPorJogo('${jogo.id}')`);
             div.innerHTML = `
+                ${dataHora}
                 <div class="time-box esquerdo">
                     <span>${jogo.t1}</span>
                     <img class="flag-img" src="https://flagcdn.com/w40/${jogo.b1}.png" alt="${jogo.t1}">
