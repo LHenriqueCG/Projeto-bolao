@@ -7,110 +7,445 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
+
         :root {
-            --primary: #2c3e50;
-            --success: #27ae60;
-            --accent: #2980b9;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --bg: #f5f7fa;
-            --card: #ffffff;
-            --text: #333333;
-            --border: #cbd5e1;
+            --verde:     #009c3b;
+            --verde-esc: #00622a;
+            --verde-grama:#007a2f;
+            --amarelo:   #FFDF00;
+            --amarelo-esc:#c9ae00;
+            --azul:      #002776;
+            --azul-med:  #1a3a8f;
+            --branco:    #ffffff;
+            --bg:        #061209;
+            --card-bg:   #0b1e10;
+            --card-brd:  #1a3d20;
+            --text:      #e8f5e9;
+            --text-dim:  #81c784;
+            --border:    #1b5e20;
+            --danger:    #e53935;
+            --danger-esc:#b71c1c;
         }
-        
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: var(--text); }
-        .container { max-width: 1100px; margin: 0 auto; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); box-sizing: border-box; }
-        
-        h1, h2, h3 { color: var(--primary); margin-top: 0; }
-        h1 { font-size: 20px; text-align: center; border-bottom: 3px solid var(--accent); padding-bottom: 12px; margin-bottom: 20px; }
-        h2 { font-size: 18px; }
-        
-        .tabs-menu { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
-        .tab-btn { flex: 1; background: #e2e8f0; color: #64748b; padding: 12px 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px; text-align: center; }
-        .tab-btn:hover { background: #cbd5e1; color: var(--primary); }
-        .tab-btn.active { background: var(--accent); color: white; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 15% 0%, rgba(0,156,59,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 100%, rgba(255,223,0,0.10) 0%, transparent 55%);
+            padding: 10px;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-brd);
+            border-radius: 18px;
+            box-shadow: 0 12px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,156,59,0.15);
+            overflow: hidden;
+        }
+
+        /* ══ HEADER ══════════════════════════════════════════ */
+        .site-header {
+            position: relative;
+            padding: 0;
+            text-align: center;
+            overflow: hidden;
+            border-bottom: 4px solid var(--amarelo);
+        }
+
+        /* faixas de gramado animadas */
+        .site-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(0,120,48,0.55) 0px, rgba(0,120,48,0.55) 44px,
+                    rgba(0,98,40,0.55) 44px, rgba(0,98,40,0.55) 88px
+                );
+            animation: grassScroll 3s linear infinite;
+        }
+        @keyframes grassScroll {
+            from { background-position-x: 0; }
+            to   { background-position-x: 88px; }
+        }
+
+        /* camada escura p/ legibilidade */
+        .site-header::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg,
+                rgba(0,40,10,0.55) 0%,
+                rgba(0,40,10,0.20) 40%,
+                rgba(0,40,10,0.65) 100%);
+        }
+
+        .header-inner {
+            position: relative;
+            z-index: 1;
+            padding: 26px 20px 20px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: var(--amarelo);
+            color: var(--verde-esc);
+            font-weight: 800;
+            font-size: 10px;
+            letter-spacing: 2px;
+            padding: 3px 14px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .site-header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(28px, 7vw, 52px);
+            letter-spacing: 4px;
+            color: var(--amarelo);
+            text-shadow:
+                3px 3px 0 var(--verde-esc),
+                0 0 30px rgba(255,223,0,0.5),
+                0 0 60px rgba(255,223,0,0.2);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .site-header .subtitle {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* losango decorativo */
+        .header-diamond {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0 4px;
+        }
+        .header-diamond::before,
+        .header-diamond::after {
+            content: '';
+            flex: 1;
+            max-width: 80px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--amarelo));
+        }
+        .header-diamond::after {
+            background: linear-gradient(to left, transparent, var(--amarelo));
+        }
+        .header-diamond span {
+            font-size: 18px;
+        }
+
+        .inner-pad { padding: 16px; }
+
+        /* ══ TÍTULOS DE SEÇÃO ══════════════════════════════ */
+        h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 21px;
+            letter-spacing: 2px;
+            color: var(--amarelo);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h2::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,223,0,0.5), transparent);
+        }
+        h3 {
+            color: var(--amarelo);
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        /* ══ TABS ══════════════════════════════════════════ */
+        .tabs-menu {
+            display: flex;
+            gap: 0;
+            background: #040e06;
+            border-bottom: 3px solid var(--amarelo);
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-dim);
+            padding: 14px 8px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+        .tab-btn:hover { background: rgba(0,156,59,0.12); color: var(--branco); }
+        .tab-btn.active {
+            background: rgba(255,223,0,0.06);
+            color: var(--amarelo);
+            border-bottom: 3px solid var(--amarelo);
+        }
 
         .aba-conteudo { display: none; }
         .aba-conteudo.active { display: block; }
 
-        .login-box { max-width: 100%; margin: 20px auto; text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 20px; border-radius: 8px; box-sizing: border-box; }
-        .login-box input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid var(--border); border-radius: 6px; text-align: center; margin-bottom: 15px; box-sizing: border-box; }
-        
-        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+        /* ══ CARDS ══════════════════════════════════════════ */
+        .card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--card-brd);
+            padding: 16px;
+            border-radius: 12px;
+            height: fit-content;
+            position: relative;
+            overflow: hidden;
+        }
+        /* topo colorido */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--verde), var(--amarelo) 50%, var(--verde));
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
         @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-        
-        .card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; height: fit-content; box-sizing: border-box; }
-        
-        textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical; box-sizing: border-box; margin-bottom: 15px; }
-        select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 15px; margin-bottom: 15px; background-color: white; box-sizing: border-box; }
-        
-        button { width: 100%; background-color: var(--success); color: white; padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; box-sizing: border-box; }
-        button:hover { background-color: #219150; }
-        .btn-calc { background-color: var(--accent); margin-top: 15px; }
-        .btn-calc:hover { background-color: #1f6b9c; }
-        .btn-danger { background-color: var(--danger); margin-top: 15px; font-size: 14px; padding: 12px; }
-        .btn-danger:hover { background-color: #c0392b; }
-        
-        .btn-clear-results { background-color: #64748b; font-size: 11px; padding: 6px 10px; width: auto; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 5px; float: right; }
-        .btn-clear-results:hover { background-color: #475569; }
-        
-        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .status-saved { background: #dcfce7; color: #15803d; }
-        .status-empty { background: #fee2e2; color: #b91c1c; }
 
-        /* Banner de status do Firebase */
-        #fbStatus { display: none; position: fixed; bottom: 15px; right: 15px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.4s; }
-        #fbStatus.saving  { background: #fef9c3; color: #854d0e; display: block; }
-        #fbStatus.success { background: #dcfce7; color: #15803d; display: block; }
-        #fbStatus.error   { background: #fee2e2; color: #b91c1c; display: block; }
-        
-        .jogos-container { max-height: 450px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: white; clear: both; }
+        /* ══ INPUTS ══════════════════════════════════════════ */
+        textarea, select, input[type="password"] {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.45);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            margin-bottom: 12px;
+        }
+        textarea { height: 150px; font-family: monospace; font-size: 13px; resize: vertical; }
+        select option { background: #0b1e10; }
+        textarea:focus, select:focus, input:focus {
+            outline: 2px solid var(--verde);
+            border-color: var(--verde);
+        }
 
-        /* ── Layout de cada linha de jogo ── */
-        /* Estrutura: [bandeira | nome] [placar] [nome | bandeira] [🧹?]
-           Usamos grid para que as colunas nunca se sobreponham */
+        /* ══ BUTTONS ══════════════════════════════════════════ */
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--verde), var(--verde-esc));
+            color: white;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        button:hover { filter: brightness(1.18); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(0,156,59,0.45); }
+        button:active { transform: translateY(0); }
+
+        .btn-calc {
+            background: linear-gradient(135deg, var(--azul-med), var(--azul));
+            margin-top: 12px;
+        }
+        .btn-calc:hover { box-shadow: 0 4px 18px rgba(0,39,118,0.55); }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), var(--danger-esc));
+            margin-top: 12px;
+            font-size: 13px;
+            padding: 11px;
+        }
+        .btn-danger:hover { box-shadow: 0 4px 18px rgba(229,57,53,0.45); }
+
+        .btn-clear-results {
+            background: rgba(255,255,255,0.07);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            font-size: 11px;
+            padding: 6px 10px;
+            width: auto;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            float: right;
+            letter-spacing: 0;
+        }
+        .btn-clear-results:hover { background: rgba(229,57,53,0.2); color: #ef9a9a; transform: none; box-shadow: none; }
+
+        /* ══ LOGIN ══════════════════════════════════════════ */
+        .login-box {
+            max-width: 420px;
+            margin: 30px auto;
+            text-align: center;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid var(--card-brd);
+            padding: 36px 28px 28px;
+            border-radius: 18px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        /* faixa verde no topo */
+        .login-box::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--verde), var(--amarelo), var(--verde));
+        }
+        .login-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+            filter: drop-shadow(0 0 12px rgba(255,223,0,0.3));
+        }
+
+        /* campo + botão olho lado a lado */
+        .senha-wrap {
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .senha-input {
+            width: 100%;
+            padding: 13px 48px 13px 16px !important; /* espaço para o botão olho */
+            border-radius: 10px !important;
+            border: 1px solid var(--border) !important;
+            background: rgba(0,0,0,0.5) !important;
+            color: var(--text) !important;
+            font-size: 15px !important;
+            text-align: left !important;
+            letter-spacing: 2px;
+            margin-bottom: 0 !important;
+        }
+        .senha-input:focus {
+            outline: none !important;
+            border-color: var(--amarelo) !important;
+            box-shadow: 0 0 0 3px rgba(255,223,0,0.12) !important;
+            letter-spacing: 3px;
+        }
+        .senha-input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.3); font-size: 13px; }
+
+        .senha-toggle {
+            position: absolute;
+            right: 10px; top: 50%; transform: translateY(-50%);
+            background: none !important;
+            border: none !important;
+            padding: 6px !important;
+            width: 34px !important;
+            height: 34px !important;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px !important;
+            color: var(--text-dim);
+            transition: background 0.15s, color 0.15s;
+            box-shadow: none !important;
+            transform: translateY(-50%) !important;
+        }
+        .senha-toggle:hover {
+            background: rgba(255,255,255,0.08) !important;
+            color: var(--amarelo);
+            transform: translateY(-50%) !important;
+            filter: none !important;
+            box-shadow: none !important;
+        }
+        .senha-toggle:active { transform: translateY(-50%) scale(0.92) !important; }
+
+        /* botão de entrar */
+        #btnEntrar {
+            margin-top: 4px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            padding: 14px;
+            border-radius: 10px;
+        }
+        #btnEntrar:disabled {
+            opacity: 0.5; cursor: not-allowed;
+            transform: none; filter: none; box-shadow: none;
+        }
+
+        /* ══ STATUS BADGE ══════════════════════════════════ */
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+        .status-saved { background: rgba(0,156,59,0.2); color: #69f0ae; border: 1px solid rgba(0,156,59,0.4); }
+        .status-empty { background: rgba(229,57,53,0.15); color: #ef9a9a; border: 1px solid rgba(229,57,53,0.3); }
+
+        /* ══ FIREBASE TOAST ══════════════════════════════════ */
+        #fbStatus {
+            display: none;
+            position: fixed; bottom: 15px; right: 15px;
+            padding: 10px 16px; border-radius: 10px;
+            font-size: 13px; font-weight: 700;
+            z-index: 999; box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+            transition: opacity 0.4s;
+        }
+        #fbStatus.saving  { background: #1a2e00; color: var(--amarelo); border: 1px solid var(--verde); display: block; }
+        #fbStatus.success { background: #0a2e0a; color: #69f0ae;        border: 1px solid var(--verde); display: block; }
+        #fbStatus.error   { background: #2e0a0a; color: #ef9a9a;        border: 1px solid var(--danger); display: block; }
+
+        /* ══ JOGOS ══════════════════════════════════════════ */
+        .jogos-container {
+            max-height: 450px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            padding: 4px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.25);
+            clear: both;
+        }
+        .jogos-container::-webkit-scrollbar { width: 5px; }
+        .jogos-container::-webkit-scrollbar-track { background: transparent; }
+        .jogos-container::-webkit-scrollbar-thumb { background: var(--verde); border-radius: 3px; }
 
         .jogo-linha-publico,
         .jogo-linha-admin {
             display: grid;
             align-items: center;
-            padding: 8px 4px;
-            border-bottom: 1px solid #edf2f7;
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
             gap: 4px;
+            transition: background 0.15s;
         }
+        .jogo-linha-publico:hover,
+        .jogo-linha-admin:hover { background: rgba(0,156,59,0.07); border-radius: 6px; }
         .jogo-linha-publico:last-child,
         .jogo-linha-admin:last-child { border-bottom: none; }
-
-        /* Público: bandeira+nome | placar | nome+bandeira */
-        .jogo-linha-publico {
-            grid-template-columns: 1fr 80px 1fr;
-        }
-
-        /* Admin: bandeira+nome | placar | nome+bandeira | 🧹 */
-        .jogo-linha-admin {
-            grid-template-columns: 1fr 80px 1fr 28px;
-        }
+        .jogo-linha-publico { grid-template-columns: 1fr 80px 1fr; }
+        .jogo-linha-admin   { grid-template-columns: 1fr 80px 1fr 28px; }
 
         .time-box {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            font-weight: 500;
-            overflow: hidden;          /* evita vazamento */
-            min-width: 0;              /* permite shrink no grid */
+            display: flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 500;
+            overflow: hidden; min-width: 0;
+            color: var(--text);
         }
-        .time-box span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+        .time-box span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .time-box.esquerdo { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
         .time-box.esquerdo span { text-align: right; }
-        .time-box.direito  { justify-content: flex-start; flex-direction: row; text-align: left; }
+        .time-box.direito  { justify-content: flex-start; text-align: left; }
 
-        /* Em telas maiores, nome completo sem corte */
         @media (min-width: 480px) {
             .time-box { font-size: 12px; }
             .time-box span { white-space: normal; overflow: visible; text-overflow: unset; }
@@ -118,49 +453,408 @@
             .jogo-linha-admin   { grid-template-columns: 1fr 88px 1fr 30px; }
         }
 
-        .flag-img { width: 20px; height: 14px; object-fit: cover; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.15); flex-shrink: 0; }
-        
-        .placar-inputs { display: flex; align-items: center; justify-content: center; gap: 3px; }
-        .placar-inputs input { width: 32px; height: 32px; text-align: center; padding: 0; border: 1px solid var(--border); border-radius: 4px; font-weight: bold; font-size: 15px; box-sizing: border-box; appearance: textfield; -moz-appearance: textfield; flex-shrink: 0; }
-        .placar-inputs input::-webkit-outer-spin-button, .placar-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .placar-inputs input:disabled { background: #f1f5f9; color: #334155; border-color: #e2e8f0; cursor: not-allowed; opacity: 1; }
-        .placar-inputs span { font-weight: bold; color: #94a3b8; font-size: 12px; flex-shrink: 0; }
-        
-        .btn-clear-single { background: #e2e8f0; color: #64748b; border: none; width: 28px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; box-sizing: border-box; padding: 0; }
-        .btn-clear-single:hover { background: #fee2e2; color: var(--danger); }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-radius: 8px; overflow: hidden; font-size: 14px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: var(--primary); color: white; font-weight: 600; }
-        tr:nth-child(even) { background-color: #f8fafc; }
-        .podium { font-weight: bold; background-color: #f0fdf4 !important; color: var(--success); }
-        
-        .list-players { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 8px; margin-top: 10px; }
-        .player-chip { background: #edf2f7; padding: 8px 6px; border-radius: 6px; text-align: center; font-size: 11px; border: 1px solid #e2e8f0; }
-        
-        .chip-actions { display: flex; gap: 4px; margin-top: 6px; justify-content: center; }
-        .btn-chip-action { flex: 1; font-size: 10px; padding: 4px 2px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; text-align: center; }
-        .btn-chip-view { background: #cbd5e1; color: #334155; }
-        .btn-chip-view:hover { background: #94a3b8; }
-        .btn-chip-delete { background: #fee2e2; color: #b91c1c; }
-        .btn-chip-delete:hover { background: #fca5a5; }
+        .flag-img {
+            width: 22px; height: 15px;
+            object-fit: cover; border-radius: 2px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
 
-        .db-inspector { background: #1e293b; color: #38bdf8; font-family: monospace; padding: 12px; border-radius: 6px; max-height: 200px; overflow-y: auto; font-size: 11px; display: none; margin-top: 15px; white-space: pre-wrap; border: 1px solid #0f172a; }
+        /* ══ PLACAR INPUTS ══════════════════════════════════ */
+        .placar-inputs { display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .placar-inputs input {
+            width: 32px; height: 32px;
+            text-align: center; padding: 0;
+            border: 1px solid rgba(0,156,59,0.6);
+            border-radius: 6px;
+            font-weight: 800; font-size: 15px;
+            background: rgba(0,80,30,0.4);
+            color: var(--amarelo);
+            box-sizing: border-box;
+            appearance: textfield; -moz-appearance: textfield;
+            flex-shrink: 0;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .placar-inputs input:not(:disabled):focus {
+            outline: none;
+            border-color: var(--amarelo);
+            box-shadow: 0 0 0 2px rgba(255,223,0,0.25);
+        }
+        .placar-inputs input::-webkit-outer-spin-button,
+        .placar-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .placar-inputs input:disabled {
+            background: rgba(255,255,255,0.04);
+            color: var(--text-dim);
+            border-color: var(--border);
+            cursor: not-allowed; opacity: 1;
+        }
+        .placar-inputs span { font-weight: 700; color: var(--text-dim); font-size: 13px; flex-shrink: 0; }
+
+        .btn-clear-single {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            width: 28px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; cursor: pointer; font-size: 11px;
+            transition: all 0.2s; box-sizing: border-box; padding: 0;
+        }
+        .btn-clear-single:hover { background: rgba(229,57,53,0.2); color: #ef9a9a; transform: none; box-shadow: none; }
+
+        /* ══ RANKING ══════════════════════════════════════════ */
+        table {
+            width: 100%; border-collapse: collapse;
+            margin-top: 10px; font-size: 14px;
+            border-radius: 10px; overflow: hidden;
+        }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        th {
+            background: linear-gradient(135deg, var(--verde-esc), var(--azul));
+            color: var(--amarelo);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 15px; letter-spacing: 1px;
+        }
+        tr:nth-child(even) td { background: rgba(255,255,255,0.018); }
+        tr:hover td { background: rgba(0,156,59,0.07); }
+
+        /* Pódio com medalhas */
+        .rank-ouro   td { background: rgba(255,215,0,0.10)  !important; }
+        .rank-prata  td { background: rgba(192,192,192,0.07) !important; }
+        .rank-bronze td { background: rgba(205,127,50,0.07)  !important; }
+
+        .rank-medal { font-size: 16px; margin-right: 4px; }
+        .rank-pts   { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--amarelo); letter-spacing: 1px; }
+
+        /* Barra de pontos */
+        .pts-bar-wrap { display: flex; align-items: center; gap: 8px; }
+        .pts-bar {
+            flex: 1; height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px; overflow: hidden;
+            min-width: 40px; max-width: 80px;
+        }
+        .pts-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--verde), var(--amarelo));
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        /* ══ PLAYER CHIPS ══════════════════════════════════ */
+        .list-players {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 8px; margin-top: 10px;
+        }
+        .player-chip {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            padding: 10px 6px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text);
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .player-chip:hover { border-color: var(--verde); transform: translateY(-1px); }
+        .player-chip strong { color: var(--amarelo); display: block; margin-bottom: 3px; }
+
+        .chip-actions { display: flex; gap: 4px; margin-top: 8px; justify-content: center; }
+        .btn-chip-action {
+            flex: 1; font-size: 10px; padding: 5px 2px;
+            border-radius: 5px; border: none; cursor: pointer;
+            font-weight: 700; text-align: center; width: auto; letter-spacing: 0;
+        }
+        .btn-chip-view   { background: rgba(255,255,255,0.10); color: var(--text); }
+        .btn-chip-view:hover   { background: rgba(255,255,255,0.18); transform: none; box-shadow: none; }
+        .btn-chip-delete { background: rgba(229,57,53,0.2); color: #ef9a9a; }
+        .btn-chip-delete:hover { background: rgba(229,57,53,0.35); transform: none; box-shadow: none; }
+
+        /* ══ DB INSPECTOR ══════════════════════════════════ */
+        .db-inspector {
+            background: #010a03;
+            color: #69f0ae;
+            font-family: monospace;
+            padding: 12px; border-radius: 8px;
+            max-height: 200px; overflow-y: auto;
+            font-size: 11px; display: none;
+            margin-top: 12px; white-space: pre-wrap;
+            border: 1px solid rgba(0,156,59,0.4);
+        }
+
+        /* ══ ADMIN BANNER ══════════════════════════════════ */
+        .admin-banner {
+            background: rgba(0,39,118,0.25);
+            border: 1px solid rgba(26,58,143,0.5);
+            color: #90caf9;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        /* ══ EXPLORADOR DE PALPITES ═════════════════════════ */
+        .explorer-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .explorer-tab {
+            flex: 1;
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.04);
+            color: var(--text-dim);
+        }
+        .explorer-tab.active {
+            background: rgba(255,223,0,0.10);
+            color: var(--amarelo);
+            border-color: rgba(255,223,0,0.35);
+        }
+        .explorer-tab:hover:not(.active) {
+            background: rgba(0,156,59,0.10);
+            color: var(--text);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .explorer-select {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        /* grid de palpites por jogo */
+        .palpites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+        }
+        .palpite-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 8px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.15s;
+            position: relative;
+        }
+        .palpite-card:hover { border-color: var(--verde); transform: translateY(-1px); }
+        .palpite-card.acerto-cheio {
+            border-color: var(--amarelo) !important;
+            background: rgba(255,223,0,0.08) !important;
+        }
+        .palpite-card.acerto-parcial {
+            border-color: var(--verde) !important;
+            background: rgba(0,156,59,0.08) !important;
+        }
+        .palpite-card.sem-acerto {
+            border-color: rgba(229,57,53,0.4) !important;
+            background: rgba(229,57,53,0.05) !important;
+        }
+        .palpite-nome {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--amarelo);
+            margin-bottom: 6px;
+        }
+        .palpite-placar {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            letter-spacing: 2px;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .palpite-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .badge-ouro   { background: rgba(255,223,0,0.2);  color: var(--amarelo); }
+        .badge-verde  { background: rgba(0,156,59,0.2);   color: #69f0ae; }
+        .badge-cinza  { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+        .badge-erro   { background: rgba(229,57,53,0.15); color: #ef9a9a; }
+
+        /* lista de palpites por integrante */
+        .palpite-linha {
+            display: grid;
+            grid-template-columns: 1fr 70px 1fr 60px;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 11px;
+            transition: background 0.12s;
+        }
+        .palpite-linha:last-child { border-bottom: none; }
+        .palpite-linha:hover { background: rgba(0,156,59,0.06); border-radius: 6px; }
+        .palpite-linha .pl-time { display: flex; align-items: center; gap: 4px; overflow: hidden; }
+        .palpite-linha .pl-time span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pl-esq { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+        .palpite-linha .pl-placar {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 1px;
+            text-align: center;
+            color: var(--amarelo);
+        }
+        .palpite-linha .pl-badge { text-align: right; }
+
+        .explorer-empty {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 13px;
+            padding: 30px 10px;
+        }
+
+        .resultado-linha {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 2px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* ══ JOGO CLICÁVEL ══════════════════════════════════ */
+        .jogo-clicavel {
+            cursor: pointer;
+            position: relative;
+        }
+        .jogo-clicavel:hover {
+            background: rgba(255,223,0,0.06) !important;
+            border-radius: 6px;
+        }
+        .jogo-clicavel:hover .jogo-clicavel-hint {
+            opacity: 1;
+        }
+        /* A linha pública já tem grid 1fr 80px 1fr;
+           adicionamos uma 4ª coluna só para o hint */
+        .jogo-linha-publico.jogo-clicavel {
+            grid-template-columns: 1fr 80px 1fr 20px;
+        }
+        @media (min-width: 480px) {
+            .jogo-linha-publico.jogo-clicavel {
+                grid-template-columns: 1fr 88px 1fr 20px;
+            }
+        }
+        .jogo-clicavel-hint {
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.15s;
+            text-align: center;
+        }
+
+        /* ══ RANKING NOME CLICÁVEL ══════════════════════════ */
+        .ranking-nome-clicavel:hover {
+            color: var(--amarelo);
+        }
+        .ranking-nome-clicavel .ranking-hint {
+            opacity: 0;
+            font-size: 11px;
+            transition: opacity 0.15s;
+        }
+        .ranking-nome-clicavel:hover .ranking-hint {
+            opacity: 1;
+        }
+
+        /* ══ EXPLORADOR — PLACAR OFICIAL ════════════════════ */
+        .explorer-placar-oficial {
+            text-align: center;
+            padding: 16px 10px 12px;
+            margin-bottom: 14px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            border: 1px solid rgba(255,223,0,0.15);
+        }
+
+        /* ══ PILLS ESTATÍSTICAS DO JOGO ═════════════════════ */
+        .jogo-stat-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .pill-ouro  { background: rgba(255,223,0,0.15);  color: var(--amarelo); border: 1px solid rgba(255,223,0,0.3); }
+        .pill-verde { background: rgba(0,156,59,0.15);   color: #69f0ae;        border: 1px solid rgba(0,156,59,0.3); }
+        .pill-erro  { background: rgba(229,57,53,0.12);  color: #ef9a9a;        border: 1px solid rgba(229,57,53,0.25); }
+
+        /* ══ STAT BOXES (perfil integrante) ═════════════════ */
+        .stat-box {
+            flex: 1; min-width: 65px;
+            text-align: center;
+            border-radius: 10px;
+            padding: 10px 4px;
+            border: 1px solid transparent;
+        }
+        .stat-num   { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; margin-bottom: 3px; }
+        .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+        .stat-pts   { background: rgba(255,223,0,0.10); border-color: rgba(255,223,0,0.25); }
+        .stat-pts   .stat-num { color: var(--amarelo); font-size: 28px; }
+        .stat-ouro  { background: rgba(255,223,0,0.05); border-color: rgba(255,223,0,0.15); }
+        .stat-ouro  .stat-num { color: var(--amarelo); }
+        .stat-verde { background: rgba(0,156,59,0.05);  border-color: rgba(0,156,59,0.2); }
+        .stat-verde .stat-num { color: #69f0ae; }
+        .stat-erro  { background: rgba(229,57,53,0.05); border-color: rgba(229,57,53,0.15); }
+        .stat-erro  .stat-num { color: #ef9a9a; }
+        .stat-cinza { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+        .stat-cinza .stat-num { color: var(--text-dim); }
+
+        /* Cards de palpite clicáveis (modo jogo) */
+        .palpite-card { cursor: default; }
+        .palpite-card[onclick] { cursor: pointer; }
+        .palpite-card[onclick]:hover { filter: brightness(1.15); }
+
+        /* Linhas clicáveis (modo integrante) */
+        .palpite-linha[onclick]:hover { background: rgba(255,223,0,0.05) !important; }
+
+        /* ══ LOGIN — extras ══════════════════════════════════ */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { display: inline-block; animation: spin 1s linear infinite; }
+
+        #loginLoading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+        .senha-toggle svg { display: block; }
     </style>
 </head>
 <body>
 
-<!-- Banner de status das operações Firebase -->
 <div id="fbStatus"></div>
 
 <div class="container">
-    <h1>Painel do Bolão Oficial — Copa 2026</h1>
-    
+    <div class="site-header">
+        <div class="header-inner">
+            <div class="header-badge">🇧🇷 Bolão Oficial</div>
+            <h1>⚽ Copa do Mundo 2026</h1>
+            <div class="header-diamond"><span>🏆</span></div>
+            <div class="subtitle">Painel de Palpites &amp; Ranking</div>
+        </div>
+    </div>
+
     <div class="tabs-menu">
         <button id="btnAbaPublico" class="tab-btn active" onclick="mudarAba('publico')">📊 Resultados & Ranking</button>
         <button id="btnAbaAdmin" class="tab-btn" onclick="mudarAba('admin')">⚙️ Administração</button>
     </div>
 
+    <div class="inner-pad">
     <div id="abaPublico" class="aba-conteudo active">
         <div class="grid">
             <div class="card">
@@ -179,31 +873,87 @@
 
             <div class="card">
                 <h2>⚽ Placares Oficiais</h2>
-                <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">Resultados reais das partidas para conferência.</p>
+                <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;">Resultados reais das partidas para conferência.</p>
                 <div id="listaJogosPublico" class="jogos-container"></div>
             </div>
+        </div>
+
+        <!-- ══ EXPLORADOR DE PALPITES ══ -->
+        <div class="card explorer-card" id="explorerCard" style="margin-bottom:16px; display:none;">
+
+            <!-- cabeçalho dinâmico -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
+                <h2 style="margin-bottom:0; flex:1;" id="explorerTitulo">🔍 Explorador de Palpites</h2>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <span id="explorerDica" style="font-size:11px; color:var(--text-dim); font-style:italic;"></span>
+                    <button onclick="fecharExplorer()" style="width:auto; padding:6px 14px; font-size:12px; background:rgba(255,255,255,0.07); color:var(--text-dim); border:1px solid var(--border); border-radius:6px;">✕ Fechar</button>
+                </div>
+            </div>
+
+            <!-- mini barra de navegação entre integrantes (visível só no modo integrante) -->
+            <div id="explorerNavIntegrantes" style="display:none; margin-bottom:14px;">
+                <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Navegar entre integrantes:</div>
+                <div id="explorerChipsNav" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+            </div>
+
+            <!-- mini barra de navegação entre jogos (visível só no modo jogo) -->
+            <div id="explorerNavJogos" style="display:none; margin-bottom:14px;">
+                <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Navegar entre jogos:</div>
+                <div id="explorerBotoesJogo" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+            </div>
+
+            <div id="explorerConteudo"></div>
         </div>
     </div>
 
     <div id="abaAdmin" class="aba-conteudo">
         <div id="loginForm" class="login-box">
-            <h3>🔒 Acesso Restrito</h3>
-            <p style="font-size: 13px; color: #64748b;">Digite a senha master para liberar as alterações.</p>
-            <input type="password" id="senhaInput" placeholder="Senha do Administrador" onkeydown="if(event.key === 'Enter') efetuarLogin()">
-            <button onclick="efetuarLogin()">Entrar no Painel</button>
+            <span class="login-icon">🔐</span>
+            <h3 style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--amarelo);margin-bottom:6px;">Acesso Restrito</h3>
+            <p style="font-size:13px;color:var(--text-dim);margin-bottom:24px;line-height:1.5;">Área exclusiva do organizador.<br>A senha é verificada diretamente no Firebase.</p>
+
+            <div class="senha-wrap">
+                <input type="password" id="senhaInput" class="senha-input"
+                    placeholder="Senha do administrador"
+                    onkeydown="if(event.key==='Enter') efetuarLogin()">
+                <button type="button" class="senha-toggle" onclick="toggleVerSenha()" title="Mostrar/ocultar senha" id="senhaToggleBtn">
+                    <svg id="iconOlhoFechado" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                    <svg id="iconOlhoAberto" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="loginErro" style="display:none; color:#ef9a9a; font-size:12px; margin-bottom:14px; background:rgba(229,57,53,0.1); padding:10px 14px; border-radius:8px; border:1px solid rgba(229,57,53,0.3);">
+                ❌ Senha incorreta. Tente novamente.
+            </div>
+            <div id="loginLoading" style="display:none; color:var(--text-dim); font-size:13px; margin-bottom:14px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <span class="spin">⏳</span> Verificando no Firebase...
+            </div>
+
+            <button onclick="efetuarLogin()" id="btnEntrar">🔓 Entrar no Painel</button>
+
+            <p style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:18px;line-height:1.6;">
+                Nenhuma senha é armazenada no código.<br>
+                Autenticação via Firestore — <code style="color:rgba(255,255,255,0.3);">config/admin</code>
+            </p>
         </div>
 
         <div id="painelGerenciamento" style="display: none;">
-            <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px; border-radius: 6px; font-weight: 500; font-size: 13px; margin-bottom: 20px; overflow: hidden;">
+            <div style="background: rgba(0,100,40,0.25); border: 1px solid var(--verde); color: var(--amarelo); padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13px; margin-bottom: 20px; overflow: hidden;">
                 <span>🔓 Modo Admin Ativo.</span>
-                <button onclick="fazerLogout()" style="width:auto; float:right; background:#3b82f6; padding: 4px 10px; font-size:11px;">Sair</button>
+                <button onclick="fazerLogout()" style="width:auto; float:right; background:rgba(255,255,255,0.15); padding: 4px 10px; font-size:11px; color:white; border:1px solid rgba(255,255,255,0.3);">Sair</button>
             </div>
 
             <div class="grid">
                 <div class="card">
-                    <h2>💾 1. Importar Palpites</h2>
-                    <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">Selecione quem apostou, cole o bloco de texto e salve.</p>
-                    
+                    <h2>💾 1. Importar / Editar Palpites</h2>
+
                     <select id="integrante" onchange="verificarStatusJogador()">
                         <option value="Diego">Diego</option><option value="Duda">Duda</option><option value="Leo">Leo</option>
                         <option value="Adriana">Adriana</option><option value="Elmir">Elmir</option><option value="Henrique">Henrique</option>
@@ -211,12 +961,45 @@
                         <option value="Lourdinha">Lourdinha</option><option value="Rodrigo">Rodrigo</option><option value="Rô">Rô</option>
                         <option value="Samuel">Samuel</option><option value="Barbara">Barbara</option><option value="Robson">Robson</option>
                     </select>
-                    
+
                     <div id="statusJogador" class="status-badge status-empty">Sem palpites salvos</div>
-                    <div style="margin-bottom: 10px;"></div>
-                    
-                    <textarea id="palpitesUsuario" placeholder="Cole o texto de palpites aqui..."></textarea>
-                    <button onclick="salvarPalpite()">Guardar Palpite no Banco</button>
+                    <div style="margin-bottom: 12px;"></div>
+
+                    <!-- Sub-abas -->
+                    <div style="display:flex; gap:6px; margin-bottom:12px;">
+                        <button id="btnModoTexto"  onclick="mudarModoImport('texto')"  style="flex:1;padding:8px;font-size:12px;">📋 Importar Texto</button>
+                        <button id="btnModoEditor" onclick="mudarModoImport('editor')" style="flex:1;padding:8px;font-size:12px;background:rgba(255,255,255,0.07);color:var(--text-dim);">✏️ Editar Jogo a Jogo</button>
+                    </div>
+
+                    <!-- Modo texto -->
+                    <div id="modoTexto">
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 8px;">Cole o bloco completo de palpites (72 jogos) e salve.</p>
+                        <textarea id="palpitesUsuario" placeholder="Cole o texto de palpites aqui..."></textarea>
+                        <button onclick="salvarPalpite()">Guardar Palpite no Banco</button>
+                    </div>
+
+                    <!-- Modo editor jogo a jogo -->
+                    <div id="modoEditor" style="display:none;">
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 8px;">Edite o placar de um jogo específico e salve. Os outros palpites não são alterados.</p>
+
+                        <select id="jogoSelecionado" onchange="abrirEditorJogo()" style="margin-bottom:10px;">
+                            <option value="">— Selecione o jogo —</option>
+                        </select>
+
+                        <div id="editorJogoArea" style="display:none; background:rgba(0,80,30,0.3); border:1px solid var(--verde); border-radius:8px; padding:12px; margin-bottom:12px;">
+                            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px;">
+                                <div id="editorTime1" style="text-align:right; font-weight:600; font-size:13px; flex:1;"></div>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <input type="number" id="editorG1" min="0" style="width:44px;height:40px;text-align:center;font-size:18px;font-weight:bold;border:2px solid var(--amarelo);border-radius:6px;padding:0;background:rgba(0,0,0,0.4);color:var(--amarelo);">
+                                    <span style="font-weight:bold; color:#94a3b8;">x</span>
+                                    <input type="number" id="editorG2" min="0" style="width:44px;height:40px;text-align:center;font-size:18px;font-weight:bold;border:2px solid var(--amarelo);border-radius:6px;padding:0;background:rgba(0,0,0,0.4);color:var(--amarelo);">
+                                </div>
+                                <div id="editorTime2" style="text-align:left; font-weight:600; font-size:13px; flex:1;"></div>
+                            </div>
+                            <div id="editorPalpiteAtual" style="text-align:center; font-size:11px; color:var(--text-dim); margin-bottom:10px;"></div>
+                            <button onclick="salvarPalpiteIndividual()" >💾 Salvar este palpite</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="card">
@@ -239,7 +1022,8 @@
             </div>
         </div>
     </div>
-</div>
+</div><!-- /inner-pad -->
+</div><!-- /container -->
 
 <!-- =====================================================
      FIREBASE SDK (módulos ES)
@@ -360,6 +1144,22 @@
     }
   };
 
+  // ── Verifica senha contra o Firestore ───────────────────
+  window.fb_verificarSenha = async function(senhaDigitada) {
+    try {
+      const snap = await getDoc(doc(db, 'config', 'admin'));
+      if (!snap.exists()) {
+        // Documento ainda não existe → cria com senha padrão
+        await setDoc(doc(db, 'config', 'admin'), { senha: 'admin123' });
+        return senhaDigitada === 'admin123';
+      }
+      return snap.data().senha === senhaDigitada;
+    } catch(e) {
+      console.error('Erro ao verificar senha:', e);
+      return false;
+    }
+  };
+
   // ── Inicializa a aplicação após o Firebase estar pronto ───
   window.addEventListener('load', inicializarApp);
 </script>
@@ -368,7 +1168,7 @@
      LÓGICA DA APLICAÇÃO
      ===================================================== -->
 <script>
-    const SENHA_ADMIN = "admin123";
+    // Senha gerenciada no Firestore (config/admin → campo "senha")
     let usuarioAutenticado = false;
 
     // Cache em memória (substitui o localStorage)
@@ -471,6 +1271,7 @@
         atualizarMonitorBanco();
         verificarStatusJogador();
         calcularResultados();
+        inicializarExplorer();
     }
     window.inicializarApp = inicializarApp;
 
@@ -484,17 +1285,56 @@
     window.mudarAba = mudarAba;
 
     // ── Login / Logout ────────────────────────────────────────
-    function efetuarLogin() {
-        if(document.getElementById('senhaInput').value === SENHA_ADMIN) {
+    async function efetuarLogin() {
+        const senha = document.getElementById('senhaInput').value;
+        if (!senha.trim()) return;
+
+        const btnEntrar   = document.getElementById('btnEntrar');
+        const erroEl      = document.getElementById('loginErro');
+        const loadingEl   = document.getElementById('loginLoading');
+
+        erroEl.style.display    = 'none';
+        loadingEl.style.display = 'flex';
+        btnEntrar.disabled      = true;
+
+        const ok = await window.fb_verificarSenha(senha);
+
+        loadingEl.style.display = 'none';
+        btnEntrar.disabled      = false;
+
+        if (ok) {
             usuarioAutenticado = true;
-            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('loginForm').style.display      = 'none';
             document.getElementById('painelGerenciamento').style.display = 'block';
             document.getElementById('senhaInput').value = '';
+            // Garante que o olho volta para fechado ao sair
+            document.getElementById('senhaInput').type = 'password';
+            document.getElementById('iconOlhoFechado').style.display = 'inline';
+            document.getElementById('iconOlhoAberto').style.display  = 'none';
         } else {
-            alert("Senha incorreta!");
+            erroEl.style.display = 'block';
+            document.getElementById('senhaInput').select();
         }
     }
     window.efetuarLogin = efetuarLogin;
+
+    function toggleVerSenha() {
+        const input      = document.getElementById('senhaInput');
+        const iconFech   = document.getElementById('iconOlhoFechado');
+        const iconAberto = document.getElementById('iconOlhoAberto');
+        if (input.type === 'password') {
+            input.type = 'text';
+            iconFech.style.display   = 'none';
+            iconAberto.style.display = 'inline';
+            input.focus();
+        } else {
+            input.type = 'password';
+            iconFech.style.display   = 'inline';
+            iconAberto.style.display = 'none';
+            input.focus();
+        }
+    }
+    window.toggleVerSenha = toggleVerSenha;
 
     function fazerLogout() {
         usuarioAutenticado = false;
@@ -535,7 +1375,9 @@
         container.innerHTML = '';
         jogosCopa.forEach(jogo => {
             const div = document.createElement('div');
-            div.className = 'jogo-linha-publico';
+            div.className = 'jogo-linha-publico jogo-clicavel';
+            div.title = 'Ver palpites deste jogo';
+            div.setAttribute('onclick', `abrirExplorerPorJogo('${jogo.id}')`);
             div.innerHTML = `
                 <div class="time-box esquerdo">
                     <span>${jogo.t1}</span>
@@ -550,10 +1392,23 @@
                     <img class="flag-img" src="https://flagcdn.com/w40/${jogo.b2}.png" alt="${jogo.t2}">
                     <span>${jogo.t2}</span>
                 </div>
+                <div class="jogo-clicavel-hint">👥</div>
             `;
             container.appendChild(div);
         });
     }
+
+    function abrirExplorerPorJogo(idJogo) {
+        // Garante que o explorer está na aba "Por Jogo"
+        explorarPorJogo();
+        // Seleciona o jogo no dropdown
+        document.getElementById('filtroJogo').value = idJogo;
+        // Renderiza os palpites
+        renderExplorerJogo();
+        // Scroll suave até o explorador
+        document.querySelector('.card.explorer-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    window.abrirExplorerPorJogo = abrirExplorerPorJogo;
 
     // ── Palpites ──────────────────────────────────────────────
     function extrairPlacaresDoTexto(texto) {
@@ -603,6 +1458,89 @@
         }
     }
     window.salvarPalpite = salvarPalpite;
+
+    // ── Modo de importação (texto vs editor) ──────────────────
+    function mudarModoImport(modo) {
+        const isEditor = modo === 'editor';
+        document.getElementById('modoTexto').style.display  = isEditor ? 'none'  : 'block';
+        document.getElementById('modoEditor').style.display = isEditor ? 'block' : 'none';
+        document.getElementById('btnModoTexto').style.background  = isEditor ? 'rgba(255,255,255,0.07)' : 'var(--verde)';
+        document.getElementById('btnModoTexto').style.color       = isEditor ? 'var(--text-dim)' : 'white';
+        document.getElementById('btnModoEditor').style.background = isEditor ? 'var(--verde)' : 'rgba(255,255,255,0.07)';
+        document.getElementById('btnModoEditor').style.color      = isEditor ? 'white'   : 'var(--text-dim)';
+        if (isEditor) popularSelectJogos();
+    }
+    window.mudarModoImport = mudarModoImport;
+
+    function popularSelectJogos() {
+        const sel = document.getElementById('jogoSelecionado');
+        sel.innerHTML = '<option value="">— Selecione o jogo —</option>';
+        jogosCopa.forEach(jogo => {
+            const opt = document.createElement('option');
+            opt.value = jogo.id;
+            opt.textContent = `${jogo.t1} x ${jogo.t2}`;
+            sel.appendChild(opt);
+        });
+        document.getElementById('editorJogoArea').style.display = 'none';
+    }
+
+    function abrirEditorJogo() {
+        const idJogo = document.getElementById('jogoSelecionado').value;
+        const area   = document.getElementById('editorJogoArea');
+        if (!idJogo) { area.style.display = 'none'; return; }
+
+        const jogo = jogosCopa.find(j => j.id === idJogo);
+        const nome = document.getElementById('integrante').value;
+
+        document.getElementById('editorTime1').innerHTML =
+            `${jogo.t1} <img src="https://flagcdn.com/w40/${jogo.b1}.png" style="width:18px;height:13px;border-radius:2px;vertical-align:middle;">`;
+        document.getElementById('editorTime2').innerHTML =
+            `<img src="https://flagcdn.com/w40/${jogo.b2}.png" style="width:18px;height:13px;border-radius:2px;vertical-align:middle;"> ${jogo.t2}`;
+
+        // Preenche com o palpite ja existente, se houver
+        const palpiteExistente = cachePalpites[nome] && cachePalpites[nome][idJogo];
+        if (palpiteExistente) {
+            document.getElementById('editorG1').value = palpiteExistente.gols1;
+            document.getElementById('editorG2').value = palpiteExistente.gols2;
+            document.getElementById('editorPalpiteAtual').textContent =
+                `Palpite atual: ${palpiteExistente.gols1} x ${palpiteExistente.gols2}`;
+        } else {
+            document.getElementById('editorG1').value = '';
+            document.getElementById('editorG2').value = '';
+            document.getElementById('editorPalpiteAtual').textContent = 'Sem palpite cadastrado para este jogo.';
+        }
+
+        area.style.display = 'block';
+    }
+    window.abrirEditorJogo = abrirEditorJogo;
+
+    async function salvarPalpiteIndividual() {
+        const nome   = document.getElementById('integrante').value;
+        const idJogo = document.getElementById('jogoSelecionado').value;
+        const g1str  = document.getElementById('editorG1').value;
+        const g2str  = document.getElementById('editorG2').value;
+
+        if (!idJogo) { alert('Selecione um jogo primeiro.'); return; }
+        if (g1str === '' || g2str === '') { alert('Preencha os dois placares.'); return; }
+
+        const g1 = parseInt(g1str);
+        const g2 = parseInt(g2str);
+        if (isNaN(g1) || isNaN(g2) || g1 < 0 || g2 < 0) { alert('Placares invalidos.'); return; }
+
+        // Mescla com os palpites ja existentes (nao apaga o resto)
+        const palpitesAtuais = cachePalpites[nome] ? {...cachePalpites[nome]} : {};
+        palpitesAtuais[idJogo] = { gols1: g1, gols2: g2, vencedor: g1 > g2 ? 1 : g2 > g1 ? 2 : 0 };
+
+        const ok = await window.fb_salvarPalpite(nome, palpitesAtuais);
+        if (ok) {
+            cachePalpites[nome] = palpitesAtuais;
+            document.getElementById('editorPalpiteAtual').textContent = `Palpite atual: ${g1} x ${g2}`;
+            atualizarMonitorBanco();
+            verificarStatusJogador();
+            calcularResultados();
+        }
+    }
+    window.salvarPalpiteIndividual = salvarPalpiteIndividual;
 
     function verificarStatusJogador() {
         const nome  = document.getElementById('integrante').value;
@@ -725,18 +1663,39 @@
         });
         ranking.sort((a, b) => b.pontos - a.pontos);
 
+        const maxPts = ranking[0]?.pontos || 1;
+        const medals = ['🥇','🥈','🥉'];
+        const rowClass = ['rank-ouro','rank-prata','rank-bronze'];
+
         const tbody = document.querySelector('#tabelaRanking tbody');
         tbody.innerHTML = '';
         ranking.forEach((jogador, index) => {
-            const tr = document.createElement('tr');
-            if (index === 0 && jogador.pontos > 0) tr.className = 'podium';
+            const tr  = document.createElement('tr');
+            const cls = index < 3 && jogador.pontos > 0 ? rowClass[index] : '';
+            if (cls) tr.className = cls;
+
+            const medal   = index < 3 && jogador.pontos > 0
+                ? `<span class="rank-medal">${medals[index]}</span>`
+                : `<span style="color:var(--text-dim);font-size:13px;">${index + 1}º</span>`;
+
+            const pct = maxPts > 0 ? Math.round((jogador.pontos / maxPts) * 100) : 0;
+            const bar = `<div class="pts-bar-wrap">
+                            <span class="rank-pts">${jogador.pontos}</span>
+                            <div class="pts-bar"><div class="pts-bar-fill" style="width:${pct}%"></div></div>
+                         </div>`;
+
             tr.innerHTML = `
-                <td><strong>${index + 1}º</strong></td>
-                <td>${jogador.nome}</td>
-                <td><strong>${jogador.pontos}</strong> pts</td>
+                <td>${medal}</td>
+                <td class="ranking-nome-clicavel" onclick="abrirExplorerPorIntegrante('${jogador.nome}')"
+                    title="Ver palpites de ${jogador.nome}" style="font-weight:600; cursor:pointer;">
+                    ${jogador.nome} <span class="ranking-hint">👁</span>
+                </td>
+                <td>${bar}</td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Explorer é re-aberto pelo usuário via clique — sem auto-refresh necessário
     }
     window.calcularResultados = calcularResultados;
 
@@ -806,6 +1765,255 @@
         }
     }
     window.zerarBancoDeDados = zerarBancoDeDados;
+
+    // ══ EXPLORADOR DE PALPITES ══════════════════════════════
+
+    function inicializarExplorer() { /* navegação por clique — sem selects */ }
+
+    function fecharExplorer() {
+        document.getElementById('explorerCard').style.display = 'none';
+    }
+    window.fecharExplorer = fecharExplorer;
+
+    function classificarPalpite(palpite, real) {
+        if (!real) return 'pendente';
+        if (palpite.gols1 === real.gols1 && palpite.gols2 === real.gols2) return 'cheio';
+        if (palpite.vencedor === real.vencedor) return 'parcial';
+        return 'erro';
+    }
+
+    function badgeHtml(tipo) {
+        if (tipo === 'cheio')   return `<span class="palpite-badge badge-ouro">⭐ +3 pts</span>`;
+        if (tipo === 'parcial') return `<span class="palpite-badge badge-verde">✔ +1 pt</span>`;
+        if (tipo === 'erro')    return `<span class="palpite-badge badge-erro">✗ 0 pts</span>`;
+        return `<span class="palpite-badge badge-cinza">⏳ Pendente</span>`;
+    }
+
+    function cardClass(tipo) {
+        if (tipo === 'cheio')   return 'palpite-card acerto-cheio';
+        if (tipo === 'parcial') return 'palpite-card acerto-parcial';
+        if (tipo === 'erro')    return 'palpite-card sem-acerto';
+        return 'palpite-card';
+    }
+
+    // Abre o explorador, mostra o card, rola até ele
+    function mostrarExplorer(titulo, dica, html, modoNav) {
+        document.getElementById('explorerTitulo').innerHTML = titulo;
+        document.getElementById('explorerDica').textContent = dica;
+        document.getElementById('explorerConteudo').innerHTML = html;
+
+        // Navegação contextual
+        document.getElementById('explorerNavIntegrantes').style.display = modoNav === 'integrante' ? 'block' : 'none';
+        document.getElementById('explorerNavJogos').style.display       = modoNav === 'jogo'       ? 'block' : 'none';
+
+        const card = document.getElementById('explorerCard');
+        card.style.display = 'block';
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+
+    // ── MODO JOGO: clique no Placar Oficial ──────────────────
+    function abrirExplorerPorJogo(idJogo) {
+        _renderJogo(idJogo);
+
+        // Monta botões de navegação anterior / próximo
+        const idx  = jogosCopa.findIndex(j => j.id === idJogo);
+        const prev = jogosCopa[idx - 1];
+        const next = jogosCopa[idx + 1];
+        const botoesEl = document.getElementById('explorerBotoesJogo');
+        botoesEl.innerHTML = '';
+
+        if (prev) {
+            const b = document.createElement('button');
+            b.style.cssText = 'width:auto;padding:5px 12px;font-size:11px;background:rgba(255,255,255,0.07);color:var(--text-dim);border:1px solid var(--border);';
+            b.innerHTML = `← ${prev.t1} × ${prev.t2}`;
+            b.onclick = () => abrirExplorerPorJogo(prev.id);
+            botoesEl.appendChild(b);
+        }
+        if (next) {
+            const b = document.createElement('button');
+            b.style.cssText = 'width:auto;padding:5px 12px;font-size:11px;background:rgba(255,255,255,0.07);color:var(--text-dim);border:1px solid var(--border);margin-left:auto;';
+            b.innerHTML = `${next.t1} × ${next.t2} →`;
+            b.onclick = () => abrirExplorerPorJogo(next.id);
+            botoesEl.appendChild(b);
+        }
+    }
+    window.abrirExplorerPorJogo = abrirExplorerPorJogo;
+
+    function _renderJogo(idJogo) {
+        const jogo = jogosCopa.find(j => j.id === idJogo);
+        const real = cacheResultados[idJogo];
+
+        const titulo = `🔍 <img src="https://flagcdn.com/w40/${jogo.b1}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">
+            ${jogo.t1} <span style="color:var(--text-dim);">×</span> ${jogo.t2}
+            <img src="https://flagcdn.com/w40/${jogo.b2}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">`;
+
+        // Placar oficial em destaque
+        const placarOficialHtml = real
+            ? `<div class="explorer-placar-oficial">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);">Resultado Oficial</span>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:var(--amarelo);line-height:1;text-shadow:0 0 20px rgba(255,223,0,0.3);">
+                    ${real.gols1} <span style="color:var(--text-dim);font-size:28px;">×</span> ${real.gols2}
+                </div>
+               </div>`
+            : `<div class="explorer-placar-oficial" style="opacity:0.6;">
+                <span style="font-size:12px;color:var(--text-dim);">⏳ Aguardando resultado</span>
+               </div>`;
+
+        // Estatísticas do jogo (quantos acertaram etc)
+        const comPalpite = integrantes.filter(n => cachePalpites[n]?.[idJogo]);
+        let qtdCheio = 0, qtdParcial = 0, qtdErro = 0;
+        comPalpite.forEach(n => {
+            const tipo = classificarPalpite(cachePalpites[n][idJogo], real);
+            if (tipo === 'cheio')   qtdCheio++;
+            if (tipo === 'parcial') qtdParcial++;
+            if (tipo === 'erro')    qtdErro++;
+        });
+
+        const statsJogoHtml = real && comPalpite.length ? `
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
+                <div class="jogo-stat-pill pill-ouro">⭐ ${qtdCheio} exato${qtdCheio !== 1 ? 's' : ''}</div>
+                <div class="jogo-stat-pill pill-verde">✔ ${qtdParcial} venc. certo</div>
+                <div class="jogo-stat-pill pill-erro">✗ ${qtdErro} erro${qtdErro !== 1 ? 's' : ''}</div>
+            </div>` : '';
+
+        // Cards dos palpiteiros
+        const ordem = { cheio: 0, parcial: 1, erro: 2, pendente: 3 };
+        const lista = comPalpite
+            .map(nome => ({ nome, p: cachePalpites[nome][idJogo], tipo: classificarPalpite(cachePalpites[nome][idJogo], real) }))
+            .sort((a, b) => ordem[a.tipo] - ordem[b.tipo]);
+
+        let cards = lista.map(({ nome, p, tipo }) =>
+            `<div class="${cardClass(tipo)}" onclick="abrirExplorerPorIntegrante('${nome}')" style="cursor:pointer;" title="Ver todos os palpites de ${nome}">
+                <div class="palpite-nome">${nome}</div>
+                <div class="palpite-placar">${p.gols1}<span style="color:var(--text-dim);font-size:18px;">×</span>${p.gols2}</div>
+                ${badgeHtml(tipo)}
+             </div>`).join('');
+
+        if (!cards) cards = '<div class="explorer-empty">😶 Nenhum palpite cadastrado para este jogo ainda.</div>';
+
+        const semPalpite = integrantes.filter(n => !cachePalpites[n]?.[idJogo]);
+        const semHtml = semPalpite.length
+            ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Ainda sem palpite (${semPalpite.length}):</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    ${semPalpite.map(n => `<span style="font-size:11px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:10px;color:var(--text-dim);">${n}</span>`).join('')}
+                </div></div>` : '';
+
+        const html = placarOficialHtml + statsJogoHtml + `<div class="palpites-grid">${cards}</div>` + semHtml;
+        const dica = comPalpite.length ? `Clique num nome para ver o perfil completo` : '';
+        mostrarExplorer(titulo, dica, html, 'jogo');
+    }
+
+    // ── MODO INTEGRANTE: clique no nome do ranking ───────────
+    function abrirExplorerPorIntegrante(nome) {
+        _renderIntegrante(nome);
+
+        // Chips de navegação entre integrantes com palpites
+        const chipsEl = document.getElementById('explorerChipsNav');
+        chipsEl.innerHTML = '';
+        integrantes.forEach(n => {
+            const tem = cachePalpites[n] && Object.keys(cachePalpites[n]).length > 0;
+            const chip = document.createElement('button');
+            chip.textContent = n;
+            chip.style.cssText = `width:auto;padding:4px 10px;font-size:11px;border-radius:20px;
+                background:${n === nome ? 'var(--amarelo)' : 'rgba(255,255,255,0.07)'};
+                color:${n === nome ? 'var(--verde-esc)' : tem ? 'var(--text)' : 'var(--text-dim)'};
+                border:1px solid ${n === nome ? 'var(--amarelo)' : 'var(--border)'};
+                opacity:${tem ? '1' : '0.4'};
+                cursor:${tem ? 'pointer' : 'default'};`;
+            if (tem) chip.onclick = () => abrirExplorerPorIntegrante(n);
+            chipsEl.appendChild(chip);
+        });
+    }
+    window.abrirExplorerPorIntegrante = abrirExplorerPorIntegrante;
+
+    function _renderIntegrante(nome) {
+        const palpitesDoJogador = cachePalpites[nome];
+
+        if (!palpitesDoJogador || Object.keys(palpitesDoJogador).length === 0) {
+            mostrarExplorer(`👤 ${nome}`, '', `<div class="explorer-empty">😶 ${nome} ainda não tem palpites cadastrados.</div>`, 'integrante');
+            return;
+        }
+
+        let cheios = 0, parciais = 0, erros = 0, pendentes = 0, totalPts = 0;
+        jogosCopa.forEach(j => {
+            const p = palpitesDoJogador[j.id];
+            if (!p) return;
+            const tipo = classificarPalpite(p, cacheResultados[j.id]);
+            if (tipo === 'cheio')    { cheios++;   totalPts += 3; }
+            if (tipo === 'parcial')  { parciais++;  totalPts += 1; }
+            if (tipo === 'erro')     { erros++; }
+            if (tipo === 'pendente') { pendentes++; }
+        });
+
+        const totalJogados = cheios + parciais + erros;
+        const aproveitamento = totalJogados > 0 ? Math.round(((cheios * 3 + parciais) / (totalJogados * 3)) * 100) : 0;
+
+        const statsHtml = `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+                <div class="stat-box stat-pts">
+                    <div class="stat-num">${totalPts}</div>
+                    <div class="stat-label">pontos</div>
+                </div>
+                <div class="stat-box stat-ouro">
+                    <div class="stat-num">⭐ ${cheios}</div>
+                    <div class="stat-label">exatos</div>
+                </div>
+                <div class="stat-box stat-verde">
+                    <div class="stat-num">✔ ${parciais}</div>
+                    <div class="stat-label">venc. certo</div>
+                </div>
+                <div class="stat-box stat-erro">
+                    <div class="stat-num">✗ ${erros}</div>
+                    <div class="stat-label">erros</div>
+                </div>
+                <div class="stat-box stat-cinza">
+                    <div class="stat-num">${pendentes}</div>
+                    <div class="stat-label">pendentes</div>
+                </div>
+            </div>
+            ${totalJogados > 0 ? `
+            <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-bottom:4px;">
+                    <span>Aproveitamento</span><span style="color:var(--amarelo);font-weight:700;">${aproveitamento}%</span>
+                </div>
+                <div style="height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+                    <div style="height:100%;width:${aproveitamento}%;background:linear-gradient(90deg,var(--verde),var(--amarelo));border-radius:4px;transition:width 0.8s ease;"></div>
+                </div>
+            </div>` : ''}`;
+
+        // Lista de jogos com destaque no acerto
+        let linhas = '';
+        jogosCopa.forEach(j => {
+            const p = palpitesDoJogador[j.id];
+            if (!p) return;
+            const real = cacheResultados[j.id];
+            const tipo = classificarPalpite(p, real);
+            const resultadoStr = real
+                ? `<span style="font-size:10px;color:var(--text-dim);">${real.gols1}×${real.gols2}</span>`
+                : '';
+            // Linha clicável — abre o explorador do jogo
+            linhas += `<div class="palpite-linha" onclick="abrirExplorerPorJogo('${j.id}')" style="cursor:pointer;" title="Ver palpites de todos para este jogo">
+                <div class="pl-time pl-esq">
+                    <span>${j.t1}</span>
+                    <img class="flag-img" src="https://flagcdn.com/w40/${j.b1}.png" alt="${j.t1}">
+                </div>
+                <div class="pl-placar">${p.gols1}×${p.gols2}</div>
+                <div class="pl-time">
+                    <img class="flag-img" src="https://flagcdn.com/w40/${j.b2}.png" alt="${j.t2}">
+                    <span>${j.t2}</span>
+                </div>
+                <div class="pl-badge">${badgeHtml(tipo)} ${resultadoStr}</div>
+            </div>`;
+        });
+
+        const titulo = `👤 ${nome}`;
+        const dica   = 'Clique numa partida para ver os palpites de todos';
+        const html   = statsHtml
+            + `<div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,0.2);padding:4px;">${linhas}</div>`;
+
+        mostrarExplorer(titulo, dica, html, 'integrante');
+    }
 </script>
 
 </body>
