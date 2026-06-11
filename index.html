@@ -647,6 +647,35 @@
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 1px;
         }
+
+        /* ══ JOGO CLICÁVEL ══════════════════════════════════ */
+        .jogo-clicavel {
+            cursor: pointer;
+            position: relative;
+        }
+        .jogo-clicavel:hover {
+            background: rgba(255,223,0,0.06) !important;
+            border-radius: 6px;
+        }
+        .jogo-clicavel:hover .jogo-clicavel-hint {
+            opacity: 1;
+        }
+        /* A linha pública já tem grid 1fr 80px 1fr;
+           adicionamos uma 4ª coluna só para o hint */
+        .jogo-linha-publico.jogo-clicavel {
+            grid-template-columns: 1fr 80px 1fr 20px;
+        }
+        @media (min-width: 480px) {
+            .jogo-linha-publico.jogo-clicavel {
+                grid-template-columns: 1fr 88px 1fr 20px;
+            }
+        }
+        .jogo-clicavel-hint {
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.15s;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -693,7 +722,7 @@
         </div>
 
         <!-- ══ EXPLORADOR DE PALPITES ══ -->
-        <div class="card" style="margin-bottom: 16px;">
+        <div class="card explorer-card" style="margin-bottom: 16px;">
             <h2>🔍 Explorador de Palpites</h2>
 
             <!-- sub-abas -->
@@ -1104,7 +1133,9 @@
         container.innerHTML = '';
         jogosCopa.forEach(jogo => {
             const div = document.createElement('div');
-            div.className = 'jogo-linha-publico';
+            div.className = 'jogo-linha-publico jogo-clicavel';
+            div.title = 'Ver palpites deste jogo';
+            div.setAttribute('onclick', `abrirExplorerPorJogo('${jogo.id}')`);
             div.innerHTML = `
                 <div class="time-box esquerdo">
                     <span>${jogo.t1}</span>
@@ -1119,10 +1150,23 @@
                     <img class="flag-img" src="https://flagcdn.com/w40/${jogo.b2}.png" alt="${jogo.t2}">
                     <span>${jogo.t2}</span>
                 </div>
+                <div class="jogo-clicavel-hint">👥</div>
             `;
             container.appendChild(div);
         });
     }
+
+    function abrirExplorerPorJogo(idJogo) {
+        // Garante que o explorer está na aba "Por Jogo"
+        explorarPorJogo();
+        // Seleciona o jogo no dropdown
+        document.getElementById('filtroJogo').value = idJogo;
+        // Renderiza os palpites
+        renderExplorerJogo();
+        // Scroll suave até o explorador
+        document.querySelector('.card.explorer-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    window.abrirExplorerPorJogo = abrirExplorerPorJogo;
 
     // ── Palpites ──────────────────────────────────────────────
     function extrairPlacaresDoTexto(texto) {
