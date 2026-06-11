@@ -517,6 +517,136 @@
             justify-content: space-between;
             gap: 8px;
         }
+
+        /* ══ EXPLORADOR DE PALPITES ═════════════════════════ */
+        .explorer-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .explorer-tab {
+            flex: 1;
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.04);
+            color: var(--text-dim);
+        }
+        .explorer-tab.active {
+            background: rgba(255,223,0,0.10);
+            color: var(--amarelo);
+            border-color: rgba(255,223,0,0.35);
+        }
+        .explorer-tab:hover:not(.active) {
+            background: rgba(0,156,59,0.10);
+            color: var(--text);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .explorer-select {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        /* grid de palpites por jogo */
+        .palpites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+        }
+        .palpite-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 8px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.15s;
+            position: relative;
+        }
+        .palpite-card:hover { border-color: var(--verde); transform: translateY(-1px); }
+        .palpite-card.acerto-cheio {
+            border-color: var(--amarelo) !important;
+            background: rgba(255,223,0,0.08) !important;
+        }
+        .palpite-card.acerto-parcial {
+            border-color: var(--verde) !important;
+            background: rgba(0,156,59,0.08) !important;
+        }
+        .palpite-card.sem-acerto {
+            border-color: rgba(229,57,53,0.4) !important;
+            background: rgba(229,57,53,0.05) !important;
+        }
+        .palpite-nome {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--amarelo);
+            margin-bottom: 6px;
+        }
+        .palpite-placar {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            letter-spacing: 2px;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .palpite-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .badge-ouro   { background: rgba(255,223,0,0.2);  color: var(--amarelo); }
+        .badge-verde  { background: rgba(0,156,59,0.2);   color: #69f0ae; }
+        .badge-cinza  { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+        .badge-erro   { background: rgba(229,57,53,0.15); color: #ef9a9a; }
+
+        /* lista de palpites por integrante */
+        .palpite-linha {
+            display: grid;
+            grid-template-columns: 1fr 70px 1fr 60px;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 11px;
+            transition: background 0.12s;
+        }
+        .palpite-linha:last-child { border-bottom: none; }
+        .palpite-linha:hover { background: rgba(0,156,59,0.06); border-radius: 6px; }
+        .palpite-linha .pl-time { display: flex; align-items: center; gap: 4px; overflow: hidden; }
+        .palpite-linha .pl-time span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pl-esq { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+        .palpite-linha .pl-placar {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 1px;
+            text-align: center;
+            color: var(--amarelo);
+        }
+        .palpite-linha .pl-badge { text-align: right; }
+
+        .explorer-empty {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 13px;
+            padding: 30px 10px;
+        }
+
+        .resultado-linha {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 2px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
@@ -557,8 +687,35 @@
 
             <div class="card">
                 <h2>⚽ Placares Oficiais</h2>
-                <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">Resultados reais das partidas para conferência.</p>
+                <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;">Resultados reais das partidas para conferência.</p>
                 <div id="listaJogosPublico" class="jogos-container"></div>
+            </div>
+        </div>
+
+        <!-- ══ EXPLORADOR DE PALPITES ══ -->
+        <div class="card" style="margin-bottom: 16px;">
+            <h2>🔍 Explorador de Palpites</h2>
+
+            <!-- sub-abas -->
+            <div class="explorer-tabs">
+                <button class="explorer-tab active" id="tabPorJogo"        onclick="explorarPorJogo()">🎮 Por Jogo</button>
+                <button class="explorer-tab"        id="tabPorIntegrante"  onclick="explorarPorIntegrante()">👤 Por Integrante</button>
+            </div>
+
+            <!-- filtro por jogo -->
+            <div id="explorerJogo">
+                <select id="filtroJogo" class="explorer-select" onchange="renderExplorerJogo()">
+                    <option value="">— Selecione um jogo —</option>
+                </select>
+                <div id="explorerJogoConteudo" class="explorer-empty">Selecione um jogo para ver todos os palpites.</div>
+            </div>
+
+            <!-- filtro por integrante -->
+            <div id="explorerIntegrante" style="display:none;">
+                <select id="filtroIntegrante" class="explorer-select" onchange="renderExplorerIntegrante()">
+                    <option value="">— Selecione um integrante —</option>
+                </select>
+                <div id="explorerIntegranteConteudo" class="explorer-empty">Selecione um integrante para ver todos os palpites dele.</div>
             </div>
         </div>
     </div>
@@ -882,6 +1039,7 @@
         atualizarMonitorBanco();
         verificarStatusJogador();
         calcularResultados();
+        inicializarExplorer();
     }
     window.inicializarApp = inicializarApp;
 
@@ -1247,6 +1405,10 @@
             `;
             tbody.appendChild(tr);
         });
+
+        // Atualiza o explorer se estiver visível
+        if (document.getElementById('filtroJogo')?.value)        renderExplorerJogo();
+        if (document.getElementById('filtroIntegrante')?.value)  renderExplorerIntegrante();
     }
     window.calcularResultados = calcularResultados;
 
@@ -1316,6 +1478,197 @@
         }
     }
     window.zerarBancoDeDados = zerarBancoDeDados;
+
+    // ══ EXPLORADOR DE PALPITES ══════════════════════════════
+
+    function inicializarExplorer() {
+        // Popula select de jogos
+        const selJogo = document.getElementById('filtroJogo');
+        jogosCopa.forEach(j => {
+            const o = document.createElement('option');
+            o.value = j.id;
+            o.textContent = `${j.t1} × ${j.t2}`;
+            selJogo.appendChild(o);
+        });
+
+        // Popula select de integrantes
+        const selInt = document.getElementById('filtroIntegrante');
+        integrantes.forEach(nome => {
+            const o = document.createElement('option');
+            o.value = nome;
+            o.textContent = nome;
+            selInt.appendChild(o);
+        });
+    }
+
+    function explorarPorJogo() {
+        document.getElementById('tabPorJogo').classList.add('active');
+        document.getElementById('tabPorIntegrante').classList.remove('active');
+        document.getElementById('explorerJogo').style.display = 'block';
+        document.getElementById('explorerIntegrante').style.display = 'none';
+    }
+    window.explorarPorJogo = explorarPorJogo;
+
+    function explorarPorIntegrante() {
+        document.getElementById('tabPorIntegrante').classList.add('active');
+        document.getElementById('tabPorJogo').classList.remove('active');
+        document.getElementById('explorerIntegrante').style.display = 'block';
+        document.getElementById('explorerJogo').style.display = 'none';
+    }
+    window.explorarPorIntegrante = explorarPorIntegrante;
+
+    // Classificar palpite em relação ao resultado real
+    function classificarPalpite(palpite, real) {
+        if (!real) return 'pendente';
+        if (palpite.gols1 === real.gols1 && palpite.gols2 === real.gols2) return 'cheio';
+        if (palpite.vencedor === real.vencedor) return 'parcial';
+        return 'erro';
+    }
+
+    function badgeHtml(tipo, pts) {
+        if (tipo === 'cheio')    return `<span class="palpite-badge badge-ouro">⭐ +3 pts</span>`;
+        if (tipo === 'parcial')  return `<span class="palpite-badge badge-verde">✔ +1 pt</span>`;
+        if (tipo === 'erro')     return `<span class="palpite-badge badge-erro">✗ 0 pts</span>`;
+        return `<span class="palpite-badge badge-cinza">⏳ Pendente</span>`;
+    }
+
+    function cardClass(tipo) {
+        if (tipo === 'cheio')   return 'palpite-card acerto-cheio';
+        if (tipo === 'parcial') return 'palpite-card acerto-parcial';
+        if (tipo === 'erro')    return 'palpite-card sem-acerto';
+        return 'palpite-card';
+    }
+
+    function renderExplorerJogo() {
+        const idJogo  = document.getElementById('filtroJogo').value;
+        const el      = document.getElementById('explorerJogoConteudo');
+        if (!idJogo) { el.className = 'explorer-empty'; el.innerHTML = 'Selecione um jogo para ver todos os palpites.'; return; }
+
+        const jogo    = jogosCopa.find(j => j.id === idJogo);
+        const real    = cacheResultados[idJogo];
+        const nomesTem = integrantes.filter(n => cachePalpites[n] && cachePalpites[n][idJogo]);
+
+        if (nomesTem.length === 0) {
+            el.className = 'explorer-empty';
+            el.innerHTML = '😶 Nenhum integrante tem palpite para este jogo ainda.';
+            return;
+        }
+
+        // Cabeçalho do jogo
+        let resultadoHtml = real
+            ? `<div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--text-dim);letter-spacing:2px;margin-bottom:14px;">
+                 RESULTADO OFICIAL: <span style="color:var(--amarelo)">${real.gols1} × ${real.gols2}</span>
+               </div>`
+            : `<div style="text-align:center;font-size:11px;color:var(--text-dim);margin-bottom:14px;">⏳ Jogo ainda não realizado — palpites sem pontuação</div>`;
+
+        // Cards de cada participante
+        let cards = '';
+        // Ordena: acerto cheio > parcial > erro > pendente
+        const ordem = { cheio: 0, parcial: 1, erro: 2, pendente: 3 };
+        const lista = nomesTem.map(nome => {
+            const p = cachePalpites[nome][idJogo];
+            const tipo = classificarPalpite(p, real);
+            return { nome, p, tipo };
+        });
+        lista.sort((a,b) => ordem[a.tipo] - ordem[b.tipo]);
+
+        lista.forEach(({ nome, p, tipo }) => {
+            cards += `<div class="${cardClass(tipo)}">
+                <div class="palpite-nome">${nome}</div>
+                <div class="palpite-placar">${p.gols1}<span style="color:var(--text-dim);font-size:18px;">×</span>${p.gols2}</div>
+                ${badgeHtml(tipo)}
+              </div>`;
+        });
+
+        // Integrantes sem palpite
+        const semPalpite = integrantes.filter(n => !cachePalpites[n] || !cachePalpites[n][idJogo]);
+        let semHtml = '';
+        if (semPalpite.length > 0) {
+            semHtml = `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Sem palpite:</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    ${semPalpite.map(n => `<span style="font-size:11px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:10px;color:var(--text-dim);">${n}</span>`).join('')}
+                </div>
+            </div>`;
+        }
+
+        el.className = '';
+        el.innerHTML = resultadoHtml + `<div class="palpites-grid">${cards}</div>` + semHtml;
+    }
+    window.renderExplorerJogo = renderExplorerJogo;
+
+    function renderExplorerIntegrante() {
+        const nome = document.getElementById('filtroIntegrante').value;
+        const el   = document.getElementById('explorerIntegranteConteudo');
+        if (!nome) { el.className = 'explorer-empty'; el.innerHTML = 'Selecione um integrante para ver todos os palpites dele.'; return; }
+
+        const palpitesDoJogador = cachePalpites[nome];
+        if (!palpitesDoJogador || Object.keys(palpitesDoJogador).length === 0) {
+            el.className = 'explorer-empty';
+            el.innerHTML = `😶 ${nome} ainda não tem palpites cadastrados.`;
+            return;
+        }
+
+        // Estatísticas rápidas
+        let cheios = 0, parciais = 0, erros = 0, pendentes = 0, totalPts = 0;
+        jogosCopa.forEach(j => {
+            const p = palpitesDoJogador[j.id];
+            if (!p) return;
+            const tipo = classificarPalpite(p, cacheResultados[j.id]);
+            if (tipo === 'cheio')   { cheios++;   totalPts += 3; }
+            if (tipo === 'parcial') { parciais++;  totalPts += 1; }
+            if (tipo === 'erro')    { erros++; }
+            if (tipo === 'pendente') { pendentes++; }
+        });
+
+        const statsHtml = `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+                <div style="flex:1;min-width:70px;text-align:center;background:rgba(255,223,0,0.08);border:1px solid rgba(255,223,0,0.2);border-radius:8px;padding:8px 4px;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--amarelo);">${totalPts}</div>
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;">pontos</div>
+                </div>
+                <div style="flex:1;min-width:70px;text-align:center;background:rgba(255,223,0,0.05);border:1px solid rgba(255,223,0,0.15);border-radius:8px;padding:8px 4px;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--amarelo);">⭐${cheios}</div>
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;">exatos</div>
+                </div>
+                <div style="flex:1;min-width:70px;text-align:center;background:rgba(0,156,59,0.05);border:1px solid rgba(0,156,59,0.2);border-radius:8px;padding:8px 4px;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#69f0ae;">✔${parciais}</div>
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;">venc. certo</div>
+                </div>
+                <div style="flex:1;min-width:70px;text-align:center;background:rgba(229,57,53,0.05);border:1px solid rgba(229,57,53,0.15);border-radius:8px;padding:8px 4px;">
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#ef9a9a;">✗${erros}</div>
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;">erros</div>
+                </div>
+            </div>`;
+
+        // Lista de jogos
+        let linhas = '';
+        jogosCopa.forEach(j => {
+            const p = palpitesDoJogador[j.id];
+            if (!p) return;
+            const real = cacheResultados[j.id];
+            const tipo = classificarPalpite(p, real);
+            const resultadoStr = real ? `<span style="color:var(--text-dim);font-size:10px;">(${real.gols1}×${real.gols2})</span>` : '';
+
+            linhas += `<div class="palpite-linha">
+                <div class="pl-time pl-esq">
+                    <span>${j.t1}</span>
+                    <img class="flag-img" src="https://flagcdn.com/w40/${j.b1}.png" alt="${j.t1}">
+                </div>
+                <div class="pl-placar">${p.gols1}×${p.gols2}</div>
+                <div class="pl-time">
+                    <img class="flag-img" src="https://flagcdn.com/w40/${j.b2}.png" alt="${j.t2}">
+                    <span>${j.t2}</span>
+                </div>
+                <div class="pl-badge">${badgeHtml(tipo)} ${resultadoStr}</div>
+            </div>`;
+        });
+
+        el.className = '';
+        el.innerHTML = statsHtml
+            + `<div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,0.2);padding:4px;">${linhas}</div>`;
+    }
+    window.renderExplorerIntegrante = renderExplorerIntegrante;
 </script>
 
 </body>
