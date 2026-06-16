@@ -1,0 +1,14 @@
+Reporte de Bugs "Projeto bolão"
+
+1 Nos cards que mostram confrontos as bandeiras e nome de seleção que ficam na primeiro coluna estão muito longe e fica feio. isso acontece nas abas "ranking" nos card de palpites dos jogadores, no card "placares oficias" e na aba "Grupos" em cada card de cada grupo na parte que mostra as partidas.
+
+2 Na aba 16avos eu queria que fosse possível um time aparecer apenas uma vez (O Japão está aparecendo em todos os confrontos).
+E a informação "3º Grp F" está empurrando o nome do pais , poderia ficar em baixo talvez , pra ser possível ler tudo
+
+3 Só liberar o palpite da próxima fase depois que preencher o resultado do ultimo jogo da fase atual. (tem que está todos os resultados preenchidos pra ir pra próxima)
+
+4 na aba de administração, juntar as áreas de palpites em uma só "importar/editar palpites" tem que absorver a "palpites do mata-mata" e virar uma só , dando a opção de escolher em qual fase você quer adicionar, editar ,importar palpites
+
+5 Na aba 16avos a bandeira do primeiro time tem que ficar antes do nome
+
+6 Trocar da aba de "16avos" para "Mata-mata"
