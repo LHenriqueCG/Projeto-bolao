@@ -1890,7 +1890,7 @@
         <div class="tabs-menu">
             <button id="btnAbaPublico" class="tab-btn active" onclick="mudarAba('publico')">📊 Ranking</button>
             <button id="btnAbaGrupos" class="tab-btn" onclick="mudarAba('grupos')">🏟️ Grupos</button>
-            <button id="btnAbaMataMata" class="tab-btn" onclick="mudarAba('matamata')">⚔️ 16avos</button>
+            <button id="btnAbaMataMata" class="tab-btn" onclick="mudarAba('matamata')">⚔️ <span id="labelAbaMataMata">16avos</span></button>
             <button id="btnAbaAdmin" class="tab-btn" onclick="mudarAba('admin')">⚙️ Admin</button>
         </div>
 
@@ -1912,8 +1912,9 @@
                     </div>
 
                     <div class="card">
-                        <h2>⚽ Placares Oficiais</h2>
+                        <h2 id="tituloPlacaOficialPublico">⚽ Placares Oficiais</h2>
                         <div id="listaJogosPublico" class="jogos-container"></div>
+                        <div id="listaJogosKOPublico" class="jogos-container" style="display:none;"></div>
                     </div>
                 </div>
 
@@ -2175,6 +2176,21 @@
 
                     </div>
 
+                     <!-- ══ FASE ATUAL DO BOLÃO ══ -->
+                     <div class="card" style="margin-bottom:16px;">
+                         <h2 style="margin:0 0 10px;font-size:16px;">🔄 Fase Atual do Bolão</h2>
+                         <p style="font-size:12px;color:#64748b;margin-bottom:14px;">Define qual fase está em andamento. Controla o card de Placares, a aba Mata-Mata e o Ranking.</p>
+                         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="faseSeletorBtns">
+                             <button onclick="definirFaseAtual('grupos')"   id="faseBtn-grupos"   style="flex:1;min-width:80px;padding:10px 6px;font-size:12px;letter-spacing:0.5px;">🏟️ Grupos</button>
+                             <button onclick="definirFaseAtual('16avos')"  id="faseBtn-16avos"  style="flex:1;min-width:80px;padding:10px 6px;font-size:12px;letter-spacing:0.5px;">⚔️ 16avos</button>
+                             <button onclick="definirFaseAtual('oitavas')" id="faseBtn-oitavas" style="flex:1;min-width:80px;padding:10px 6px;font-size:12px;letter-spacing:0.5px;">⚔️ Oitavas</button>
+                             <button onclick="definirFaseAtual('quartas')" id="faseBtn-quartas" style="flex:1;min-width:80px;padding:10px 6px;font-size:12px;letter-spacing:0.5px;">🏆 Quartas</button>
+                             <button onclick="definirFaseAtual('semis')"   id="faseBtn-semis"   style="flex:1;min-width:80px;padding:10px 6px;font-size:12px;letter-spacing:0.5px;">🏆 Semis</button>
+                             <button onclick="definirFaseAtual('final')"   id="faseBtn-final"   style="flex:1;min-width:80px;padding:10px 6px;font-size:12px;letter-spacing:0.5px;">🥇 Final</button>
+                         </div>
+                         <div id="faseAtualStatus" style="margin-top:12px;font-size:12px;color:var(--text-dim);text-align:center;"></div>
+                     </div>
+
                      <!-- ══ LANÇAR RESULTADOS ══ -->
                      <div class="card" style="margin-bottom:16px;">
                          <div style="display:block;width:100%;">
@@ -2210,6 +2226,15 @@
                          <div id="manual3Container"></div>
                      </div>
  
+                     <!-- ══ SINCRONIZAÇÃO API ══ -->
+                     <div class="card" style="margin-bottom:16px;" id="cardApiSync">
+                         <h2 style="font-size:16px;margin-bottom:6px;">🤖 Sincronização Automática</h2>
+                         <p style="font-size:12px;color:#64748b;margin-bottom:12px;">O Worker no Cloudflare atualiza os resultados automaticamente a cada 15 minutos. Use o botão abaixo para forçar uma atualização imediata.</p>
+                         <button onclick="forceSyncAgora()" style="width:100%;padding:10px;font-size:13px;background:rgba(255,255,255,0.08);color:var(--text);border:1px solid var(--card-brd);border-radius:8px;cursor:pointer;font-weight:700;">🔄 Forçar Sync Agora</button>
+                         <div id="syncStatus" style="margin-top:10px;font-size:12px;color:var(--text-dim);min-height:18px;"></div>
+                         <div id="syncLog" style="margin-top:6px;font-size:11px;color:#64748b;max-height:100px;overflow-y:auto;line-height:1.6;"></div>
+                     </div>
+
                      <div class="card" style="margin-bottom: 30px;">
                          <h3>👥 Status dos Participantes</h3>
 
@@ -2417,6 +2442,20 @@
             }
         };
 
+        window.fb_salvarFaseAtual = async function (fase) {
+            try {
+                await setDoc(doc(db, 'config', 'fase_atual'), { fase });
+                return true;
+            } catch (e) { console.error(e); return false; }
+        };
+
+        window.fb_carregarFaseAtual = async function () {
+            try {
+                const snap = await getDoc(doc(db, 'config', 'fase_atual'));
+                return snap.exists() ? snap.data().fase : 'grupos';
+            } catch (e) { return 'grupos'; }
+        };
+
         // ── Verifica senha contra o Firestore ───────────────────
         window.fb_verificarSenha = async function (senhaDigitada) {
             try {
@@ -2447,6 +2486,7 @@
         // Cache em memória (substitui o localStorage)
         let cachePalpites = {};   // { "Diego": { "brasil-marrocos": { gols1, gols2, vencedor }, ... }, ... }
         let cacheResultados = {};   // { "brasil-marrocos": { gols1, gols2, vencedor }, ... }
+        let faseAtualManual = 'grupos'; // fase definida pelo admin no Firebase
 
         const integrantes = ["Diego", "Duda", "Leo", "Adriana", "Elmir", "Henrique", "Saad", "Thavynne", "Cadu", "Rodrigo", "Rô", "Samuel", "Barbara", "Robson"];
 
@@ -2541,6 +2581,7 @@
 
             cachePalpites = todosOsPalpites;
             cacheResultados = resultados;
+            faseAtualManual = await window.fb_carregarFaseAtual();
 
             sincronizarEspelhoPublico(cacheResultados);
             preencherInputsResultados(cacheResultados);
@@ -2549,6 +2590,8 @@
             calcularResultados();
             inicializarExplorer();
             await carregarPalpitesKO();
+            atualizarFasePublica();
+            atualizarBotoesFaseAdmin();
         }
         window.inicializarApp = inicializarApp;
 
@@ -2595,6 +2638,7 @@
                     popularSelectIntegranteKO();
                     renderManual3Panel();
                     renderDesempatePanel();
+                    atualizarBotoesFaseAdmin();
                     // Garante que o olho volta para fechado ao sair
 
                 document.getElementById('senhaInput').type = 'password';
@@ -2975,6 +3019,7 @@
                 cacheResultados = resultados;
                 sincronizarEspelhoPublico(cacheResultados);
                 calcularResultados();
+                atualizarFasePublica();
             }
         }
         window.salvarEAtualizarRanking = salvarEAtualizarRanking;
@@ -3030,9 +3075,12 @@
 
         // ── Ranking ───────────────────────────────────────────────
         function calcularResultados() {
+            const faseAtual = determinarFaseAtual();
             let ranking = [];
             integrantes.forEach(nome => {
                 let pontos = 0;
+
+                // Pontos da fase de grupos
                 const palpiteDoJogador = cachePalpites[nome];
                 if (palpiteDoJogador) {
                     for (let idJogo in cacheResultados) {
@@ -3047,6 +3095,26 @@
                         }
                     }
                 }
+
+                // Pontos das fases KO (até a fase atual)
+                const fasesOrdem = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
+                for (const fase of fasesOrdem) {
+                    const resKO = cacheResultadosKO[fase];
+                    if (!resKO || Object.keys(resKO).length === 0) continue;
+                    const palpitesKO = cachePalpitesKO[`${nome}_${fase}`];
+                    if (!palpitesKO) continue;
+                    for (let idJogo in resKO) {
+                        const real = resKO[idJogo];
+                        const palpite = palpitesKO[idJogo];
+                        if (!palpite) continue;
+                        if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) {
+                            pontos += 3;
+                        } else if (real.vencedor === palpite.vencedor) {
+                            pontos += 1;
+                        }
+                    }
+                }
+
                 ranking.push({ nome, pontos });
             });
             ranking.sort((a, b) => b.pontos - a.pontos);
@@ -3087,7 +3155,257 @@
         }
         window.calcularResultados = calcularResultados;
 
-        // ── Monitor de participantes ──────────────────────────────
+        // ══ CONTROLE DE FASE MANUAL ══════════════════════════════
+
+        const nomeFases = {
+            grupos: '🏟️ Fase de Grupos',
+            '16avos': '⚔️ 16avos de Final',
+            oitavas: '⚔️ Oitavas de Final',
+            quartas: '🏆 Quartas de Final',
+            semis: '🏆 Semifinais',
+            final: '🥇 Final'
+        };
+
+        async function definirFaseAtual(fase) {
+            const ok = await window.fb_salvarFaseAtual(fase);
+            if (ok) {
+                faseAtualManual = fase;
+                atualizarBotoesFaseAdmin();
+                atualizarFasePublica();
+                // Também re-renderiza a aba mata-mata se estiver aberta
+                if (document.getElementById('abaMataMata').classList.contains('active')) {
+                    renderizarMataMata();
+                }
+            } else {
+                alert('❌ Erro ao salvar a fase. Tente novamente.');
+            }
+        }
+        window.definirFaseAtual = definirFaseAtual;
+
+        function atualizarBotoesFaseAdmin() {
+            const fases = ['grupos', '16avos', 'oitavas', 'quartas', 'semis', 'final'];
+            fases.forEach(f => {
+                const btn = document.getElementById(`faseBtn-${f}`);
+                if (!btn) return;
+                if (f === faseAtualManual) {
+                    btn.style.background = 'linear-gradient(135deg, var(--amarelo), var(--amarelo-esc))';
+                    btn.style.color = 'var(--verde-esc)';
+                    btn.style.fontWeight = '800';
+                    btn.style.boxShadow = '0 4px 14px rgba(255,223,0,0.35)';
+                } else {
+                    btn.style.background = 'rgba(255,255,255,0.06)';
+                    btn.style.color = 'var(--text-dim)';
+                    btn.style.fontWeight = '700';
+                    btn.style.boxShadow = 'none';
+                }
+            });
+            const statusEl = document.getElementById('faseAtualStatus');
+            if (statusEl) statusEl.innerHTML = `✅ Fase atual: <strong style="color:var(--amarelo);">${nomeFases[faseAtualManual] || faseAtualManual}</strong>`;
+        }
+        window.atualizarBotoesFaseAdmin = atualizarBotoesFaseAdmin;
+
+        // ══ FASE ATUAL DO BOLÃO ══════════════════════════════════
+
+        // Retorna a fase atual com base no valor definido manualmente pelo admin
+        function determinarFaseAtual() {
+            return faseAtualManual || 'grupos';
+        }
+
+        function atualizarVisibilidadeAbas() {
+            const fase = determinarFaseAtual();
+            const btnGrupos = document.getElementById('btnAbaGrupos');
+            const btnMataMata = document.getElementById('btnAbaMataMata');
+
+            // Aba Grupos — some quando sair da fase de grupos
+            if (btnGrupos) {
+                if (fase === 'grupos') {
+                    btnGrupos.style.display = '';
+                } else {
+                    if (document.getElementById('abaGrupos').classList.contains('active')) {
+                        mudarAba('publico');
+                    }
+                    btnGrupos.style.display = 'none';
+                }
+            }
+
+            // Aba Mata-Mata — some quando a fase for "final" (não há próxima fase)
+            if (btnMataMata) {
+                if (fase === 'final') {
+                    if (document.getElementById('abaMataMata').classList.contains('active')) {
+                        mudarAba('publico');
+                    }
+                    btnMataMata.style.display = 'none';
+                } else {
+                    btnMataMata.style.display = '';
+                }
+            }
+        }
+        window.atualizarVisibilidadeAbas = atualizarVisibilidadeAbas;
+
+        // Labels curtos para a aba
+        const labelsAbaFase = {
+            grupos: 'Grupos',
+            '16avos': '16avos',
+            oitavas: 'Oitavas',
+            quartas: 'Quartas',
+            semis: 'Semis',
+            final: 'Final'
+        };
+
+        // Emojis para título do card
+        const emojisFase = {
+            grupos: '⚽',
+            '16avos': '⚔️',
+            oitavas: '⚔️',
+            quartas: '🏆',
+            semis: '🏆',
+            final: '🥇'
+        };
+
+        // Atualiza a aba de mata-mata e o card de Placares Oficiais na aba Ranking
+        function atualizarFasePublica() {
+            const fase = determinarFaseAtual();
+            const isGrupos = fase === 'grupos';
+
+            // Próxima fase para o label da aba mata-mata
+            const ordemFasesAll2 = ['grupos', '16avos', 'oitavas', 'quartas', 'semis', 'final'];
+            const idxAtual = ordemFasesAll2.indexOf(fase);
+            const proximaFase = ordemFasesAll2[idxAtual + 1] || 'final';
+
+            const labelsProxima = {
+                '16avos': '16avos',
+                oitavas: 'Oitavas',
+                quartas: 'Quartas',
+                semis: 'Semis',
+                final: 'Final'
+            };
+
+            // Atualiza label da aba mata-mata → sempre mostra a PRÓXIMA fase
+            const labelAba = document.getElementById('labelAbaMataMata');
+            if (labelAba) {
+                labelAba.textContent = labelsProxima[proximaFase] || proximaFase;
+            }
+
+            // Atualiza título e conteúdo do card Placares Oficiais
+            const titulo = document.getElementById('tituloPlacaOficialPublico');
+            const containerGrupos = document.getElementById('listaJogosPublico');
+            const containerKO = document.getElementById('listaJogosKOPublico');
+
+            if (isGrupos) {
+                if (titulo) titulo.innerHTML = '⚽ Placares Oficiais — Fase de Grupos';
+                if (containerGrupos) containerGrupos.style.display = '';
+                if (containerKO) containerKO.style.display = 'none';
+            } else {
+                const emoji = emojisFase[fase] || '⚔️';
+                const nomeLabel = fasesKO[fase]?.label || fase;
+                if (titulo) titulo.innerHTML = `${emoji} Placares Oficiais — ${nomeLabel}`;
+                if (containerGrupos) containerGrupos.style.display = 'none';
+                if (containerKO) {
+                    containerKO.style.display = '';
+                    renderizarPlacaresKOPublico(fase);
+                }
+            }
+
+            // Atualiza ranking para incluir pontos do mata-mata
+            calcularResultados();
+            atualizarVisibilidadeAbas();
+        }
+        window.atualizarFasePublica = atualizarFasePublica;
+
+        // Renderiza os jogos do mata-mata no card público de placares
+        function renderizarPlacaresKOPublico(fase) {
+            const container = document.getElementById('listaJogosKOPublico');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const jogos = fasesKO[fase]?.jogos || [];
+            const resultados = cacheResultadosKO[fase] || {};
+
+            jogos.forEach(jogo => {
+                const tA = resolverTimeKO(jogo.fonteA);
+                const tB = resolverTimeKO(jogo.fonteB);
+                const r = resultados[jogo.id];
+
+                const nomeA = tA ? tA.nome : jogo.labelA;
+                const nomeB = tB ? tB.nome : jogo.labelB;
+                const codA = tA?.cod;
+                const codB = tB?.cod;
+
+                const flagA = codA ? `<img class="flag-img" src="https://flagcdn.com/w40/${codA}.png">` : '';
+                const flagB = codB ? `<img class="flag-img" src="https://flagcdn.com/w40/${codB}.png">` : '';
+
+                const g1 = r ? r.gols1 : '';
+                const g2 = r ? r.gols2 : '';
+
+                const div = document.createElement('div');
+                div.className = 'jogo-linha-publico';
+                div.innerHTML = `
+                <div class="time-box esquerdo">
+                    <span>${nomeA}</span>
+                    ${flagA}
+                </div>
+                <div class="placar-inputs">
+                    <input type="number" value="${g1}" disabled style="${r ? 'color:var(--amarelo);font-weight:800;' : ''}">
+                    <span>x</span>
+                    <input type="number" value="${g2}" disabled style="${r ? 'color:var(--amarelo);font-weight:800;' : ''}">
+                </div>
+                <div class="time-box direito">
+                    ${flagB}
+                    <span>${nomeB}</span>
+                </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        window.renderizarPlacaresKOPublico = renderizarPlacaresKOPublico;
+
+        // ══ SINCRONIZAÇÃO VIA CLOUDFLARE WORKER ══════════════════
+
+        const WORKER_URL = 'https://bolao-football-proxy.luizhcabralg.workers.dev';
+
+        function setSyncStatus(msg) {
+            const el = document.getElementById('syncStatus');
+            if (el) el.textContent = msg;
+        }
+
+        function logSync(msg) {
+            const el = document.getElementById('syncLog');
+            if (!el) return;
+            const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            el.innerHTML = `[${hora}] ${msg}<br>` + el.innerHTML;
+        }
+
+        async function forceSyncAgora() {
+            setSyncStatus('⏳ Forçando sincronização...');
+            try {
+                const r = await fetch(WORKER_URL);
+                const d = await r.json();
+                (d.log || []).forEach(l => logSync(l));
+                if (d.atualizados > 0) {
+                    // Recarrega resultados do Firebase
+                    const novos = await window.fb_carregarResultados();
+                    if (novos) {
+                        cacheResultados = novos;
+                        sincronizarEspelhoPublico(cacheResultados);
+                        preencherInputsResultados(cacheResultados);
+                        calcularResultados();
+                        atualizarFasePublica();
+                    }
+                    setSyncStatus(`✅ ${d.atualizados} resultado(s) atualizados — ${new Date().toLocaleTimeString('pt-BR')}`);
+                } else {
+                    setSyncStatus(`ℹ️ Tudo atualizado — ${new Date().toLocaleTimeString('pt-BR')}`);
+                }
+            } catch (e) {
+                setSyncStatus('❌ Erro ao conectar com o Worker.');
+                console.error(e);
+            }
+        }
+        window.forceSyncAgora = forceSyncAgora;
+
+        // ═════════════════════════════════════════════════════════
+
+        // ═════════════════════════════════════════════════════════
+
         function atualizarMonitorBanco() {
             const container = document.getElementById('listaChips');
             container.innerHTML = '';
@@ -3695,65 +4013,121 @@
         function renderizarMataMata() {
             const container = document.getElementById('mataMataConteudo');
 
-            // Verifica se algum grupo já tem resultado
-            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-            const algumResultado = jogosCopa.some(j => cacheResultados[j.id]);
+            const faseAtual = determinarFaseAtual();
 
-            // Separa os 8 confrontos com 3os dos 8 fixos
-            const confrontosCom3 = chavamento16avos.slice(0, 8);
-            const confrontosFixos = chavamento16avos.slice(8);
+            // Calcula a PRÓXIMA fase — é o que a aba representa
+            const ordemTodasFases = ['grupos', '16avos', 'oitavas', 'quartas', 'semis', 'final'];
+            const idxAtual = ordemTodasFases.indexOf(faseAtual);
+            const proximaFase = ordemTodasFases[idxAtual + 1] || 'final';
 
-            function renderConfrontos(lista, titulo) {
-                const cards = lista.map(conf => {
-                    const tA = resolverTime(conf.fonteA);
-                    const tB = resolverTime(conf.fonteB);
+            // Se fase atual = grupos → próxima fase = 16avos → mostra chaveamento dos 16avos
+            if (proximaFase === '16avos') {
+                const algumResultado = jogosCopa.some(j => cacheResultados[j.id]);
+                const confrontosCom3 = chavamento16avos.slice(0, 8);
+                const confrontosFixos = chavamento16avos.slice(8);
 
-                     const ladoA = tA
-                         ? `<div class="mm-time mm-esq">
-                             <span class="mm-nome">${tA.nome}</span>
-                             <img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">
-                             ${tA.labelExtra ? `<span class="mm-extra">${tA.labelExtra}</span>` : ''}
-                        </div>`
-                        : `<div class="mm-time mm-esq mm-pendente">
-                            <span class="mm-nome">${conf.labelA}</span>
-                       </div>`;
+                function renderConfrontos16(lista, titulo) {
+                    const cards = lista.map(conf => {
+                        const tA = resolverTime(conf.fonteA);
+                        const tB = resolverTime(conf.fonteB);
+                        const ladoA = tA
+                            ? `<div class="mm-time mm-esq"><span class="mm-nome">${tA.nome}</span><img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">${tA.labelExtra ? `<span class="mm-extra">${tA.labelExtra}</span>` : ''}</div>`
+                            : `<div class="mm-time mm-esq mm-pendente"><span class="mm-nome">${conf.labelA}</span></div>`;
+                        const ladoB = tB
+                            ? `<div class="mm-time mm-dir">${tB.labelExtra ? `<span class="mm-extra">${tB.labelExtra}</span>` : ''}<span class="mm-nome">${tB.nome}</span><img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag"></div>`
+                            : `<div class="mm-time mm-dir mm-pendente"><span class="mm-nome">${conf.labelB}</span></div>`;
+                        return `<div class="mm-card">${ladoA}<div class="mm-vs">VS</div>${ladoB}</div>`;
+                    }).join('');
+                    return `<div class="mm-secao"><div class="mm-secao-titulo">${titulo}</div><div class="mm-grid">${cards}</div></div>`;
+                }
 
-                    const ladoB = tB
-                        ? `<div class="mm-time mm-dir">
-                            ${tB.labelExtra ? `<span class="mm-extra">${tB.labelExtra}</span>` : ''}
-                            <span class="mm-nome">${tB.nome}</span>
-                            <img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">
-                       </div>`
-                        : `<div class="mm-time mm-dir mm-pendente">
-                            <span class="mm-nome">${conf.labelB}</span>
-                       </div>`;
+                const aviso = !algumResultado
+                    ? `<div class="mm-aviso">⏳ Os times aparecerão automaticamente conforme os resultados da fase de grupos forem lançados.</div>`
+                    : '';
 
-                    return `<div class="mm-card">
-                    ${ladoA}
-                    <div class="mm-vs">VS</div>
-                    ${ladoB}
-                </div>`;
-                }).join('');
-
-                return `<div class="mm-secao">
-                <div class="mm-secao-titulo">${titulo}</div>
-                <div class="mm-grid">${cards}</div>
-            </div>`;
+                container.innerHTML = `
+                <div style="margin-bottom:6px;">
+                    <h2 style="margin-bottom:4px;">⚔️ 16avos de Final</h2>
+                    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Chaveamento automático baseado na classificação da fase de grupos.</p>
+                </div>
+                ${aviso}
+                ${renderConfrontos16(confrontosCom3, '🏅 Confrontos entre 1º e 3º Colocado')}
+                ${renderConfrontos16(confrontosFixos, '🔁 Confrontos de 1º e 2º Colocados')}
+                `;
+                return;
             }
 
-            const aviso = !algumResultado
-                ? `<div class="mm-aviso">⏳ Os times aparecerão automaticamente conforme os resultados da fase de grupos forem lançados.</div>`
-                : '';
+            // Para oitavas em diante: mostra a próxima fase com times resolvidos via resultados KO
+            const fase = proximaFase;
+            const jogos = fasesKO[fase]?.jogos || [];
+            const resultados = cacheResultadosKO[fase] || {};
+            const label = fasesKO[fase]?.label || fase;
+
+            // Resumo das fases KO já concluídas (anteriores à próxima fase)
+            const fasesKOOrdem = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
+            const idxProxima = fasesKOOrdem.indexOf(fase);
+
+            let resumoFasesAnteriores = '';
+            for (let i = 0; i < idxProxima; i++) {
+                const f = fasesKOOrdem[i];
+                const resF = cacheResultadosKO[f] || {};
+                const jogosF = fasesKO[f]?.jogos || [];
+                if (Object.keys(resF).length === 0) continue;
+                const cardsF = jogosF.map(j => {
+                    const r = resF[j.id];
+                    const tA = resolverTimeKO(j.fonteA);
+                    const tB = resolverTimeKO(j.fonteB);
+                    const nA = tA ? tA.nome : j.labelA;
+                    const nB = tB ? tB.nome : j.labelB;
+                    const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
+                    const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
+                    const placar = r
+                        ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}</div>`
+                        : '<div class="mm-vs">VS</div>';
+                    return `<div class="mm-card" style="opacity:0.65;font-size:11px;">
+                        <div class="mm-time mm-esq"><span class="mm-nome" style="font-size:10px;">${nA}</span>${fA}</div>
+                        ${placar}
+                        <div class="mm-time mm-dir">${fB}<span class="mm-nome" style="font-size:10px;">${nB}</span></div>
+                    </div>`;
+                }).join('');
+                resumoFasesAnteriores += `<details style="margin-bottom:16px;">
+                    <summary style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text-dim);cursor:pointer;padding:6px 0;border-bottom:1px solid var(--card-brd);">✅ ${fasesKO[f].label} — concluída</summary>
+                    <div class="mm-grid" style="margin-top:10px;">${cardsF}</div>
+                </details>`;
+            }
+
+            // Confrontos da próxima fase com times resolvidos pelos resultados anteriores
+            const cardsProxima = jogos.map(j => {
+                const tA = resolverTimeKO(j.fonteA);
+                const tB = resolverTimeKO(j.fonteB);
+                const r = resultados[j.id];
+                const nA = tA ? tA.nome : j.labelA;
+                const nB = tB ? tB.nome : j.labelB;
+                const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
+                const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
+                const placar = r
+                    ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}</div>`
+                    : '<div class="mm-vs">VS</div>';
+                return `<div class="mm-card">
+                    <div class="mm-time mm-esq"><span class="mm-nome">${nA}</span>${fA}</div>
+                    ${placar}
+                    <div class="mm-time mm-dir">${fB}<span class="mm-nome">${nB}</span></div>
+                </div>`;
+            }).join('');
+
+            const emojiLabel = { oitavas: '⚔️', quartas: '🏆', semis: '🏆', final: '🥇' }[fase] || '⚔️';
 
             container.innerHTML = `
             <div style="margin-bottom:6px;">
-                <h2 style="margin-bottom:4px;">⚔️ 16avos de Final</h2>
-                <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Chaveamento automático baseado na classificação da fase de grupos.</p>
+                <h2 style="margin-bottom:4px;">${emojiLabel} ${label}</h2>
+                <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Times classificados com base nos resultados dos ${fasesKO[fasesKOOrdem[idxProxima - 1]]?.label || '16avos'}.</p>
             </div>
-            ${aviso}
-            ${renderConfrontos(confrontosCom3, '🏅 Confrontos entre 1º e 3º Colocado')}
-            ${renderConfrontos(confrontosFixos, '🔁 Confrontos de 1º e 2º Colocados')}
-        `;
+            ${resumoFasesAnteriores}
+            <div class="mm-secao">
+                <div class="mm-secao-titulo">🔜 Próxima fase: ${label}</div>
+                <div class="mm-grid">${cardsProxima}</div>
+            </div>
+            `;
         }
         window.renderizarMataMata = renderizarMataMata;
 
@@ -3768,8 +4142,8 @@
             'semis': { label: 'Semifinais', jogos: Array.from({ length: 4 }, (_, i) => ({ id: `sem-${i + 1}`, labelA: `Vencedor Qrt-${i * 2 + 1}`, labelB: `Vencedor Qrt-${i * 2 + 2}`, fonteA: { ko: 'quartas', idx: i * 2 }, fonteB: { ko: 'quartas', idx: i * 2 + 1 } })) },
             'final': {
                 label: 'Final & 3º Lugar', jogos: [
+                    { id: 'final-2', labelA: 'Perdedor Semi-1', labelB: 'Perdedor Semi-2', fonteA: { ko: 'semis', idx: 0, perdedor: true }, fonteB: { ko: 'semis', idx: 1, perdedor: true }, terceiro: true },
                     { id: 'final-1', labelA: 'Vencedor Semi-1', labelB: 'Vencedor Semi-2', fonteA: { ko: 'semis', idx: 0 }, fonteB: { ko: 'semis', idx: 1 } },
-                    { id: 'final-2', labelA: 'Perdedor Semi-1', labelB: 'Perdedor Semi-2', fonteA: { ko: 'semis', idx: 0 }, fonteB: { ko: 'semis', idx: 1 }, terceiro: true },
                 ]
             },
         };
@@ -3791,13 +4165,19 @@
                 if (!jogoDaFase) return null;
                 const r = res[jogoDaFase.id];
                 if (!r) return null;
-                // Retorna vencedor
                 const tA = resolverTimeKO(jogoDaFase.fonteA);
                 const tB = resolverTimeKO(jogoDaFase.fonteB);
                 if (!tA || !tB) return null;
+                if (fonte.perdedor) {
+                    // Retorna o perdedor do jogo
+                    if (r.vencedor === 1) return tB;
+                    if (r.vencedor === 2) return tA;
+                    return null;
+                }
+                // Retorna o vencedor
                 if (r.vencedor === 1) return tA;
                 if (r.vencedor === 2) return tB;
-                return null; // empate em jogo eliminatório — aguarda pênaltis
+                return null;
             }
             return null;
         }
@@ -4082,6 +4462,7 @@
                 cacheResultadosKO[fase] = dados;
                 atualizarBotoesFaseKO();
                 renderKOJogos(); // re-render to update locked state
+                atualizarFasePublica(); // atualiza aba e card público
                 alert(`✅ ${salvos} resultado(s) de ${fasesKO[fase].label} salvos!`);
             }
         }
