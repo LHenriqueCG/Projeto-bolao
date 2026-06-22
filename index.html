@@ -1899,6 +1899,7 @@
                 <div class="grid">
                     <div class="card">
                         <h2>📊 Classificação Geral</h2>
+                        <div id="avisoEmpateTotal" style="display:none;background:rgba(255,223,0,0.12);border:1px solid var(--amarelo);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--amarelo);margin-bottom:12px;line-height:1.5;"></div>
                         <table id="tabelaRanking">
                             <thead>
                                 <tr>
@@ -3079,6 +3080,8 @@
             let ranking = [];
             integrantes.forEach(nome => {
                 let pontos = 0;
+                let exatos = 0;   // placares exatos (critério 1)
+                let acertos = 0;  // acertos de resultado sem placar exato (critério 2)
 
                 // Pontos da fase de grupos
                 const palpiteDoJogador = cachePalpites[nome];
@@ -3088,15 +3091,15 @@
                             const real = cacheResultados[idJogo];
                             const palpite = palpiteDoJogador[idJogo];
                             if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) {
-                                pontos += 3;
+                                pontos += 3; exatos++;
                             } else if (real.vencedor === palpite.vencedor) {
-                                pontos += 1;
+                                pontos += 1; acertos++;
                             }
                         }
                     }
                 }
 
-                // Pontos das fases KO (até a fase atual)
+                // Pontos das fases KO
                 const fasesOrdem = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
                 for (const fase of fasesOrdem) {
                     const resKO = cacheResultadosKO[fase];
@@ -3108,16 +3111,33 @@
                         const palpite = palpitesKO[idJogo];
                         if (!palpite) continue;
                         if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) {
-                            pontos += 3;
+                            pontos += 3; exatos++;
                         } else if (real.vencedor === palpite.vencedor) {
-                            pontos += 1;
+                            pontos += 1; acertos++;
                         }
                     }
                 }
 
-                ranking.push({ nome, pontos });
+                ranking.push({ nome, pontos, exatos, acertos });
             });
-            ranking.sort((a, b) => b.pontos - a.pontos);
+
+            // Ordenação com critérios de desempate
+            ranking.sort((a, b) => {
+                if (b.pontos !== a.pontos) return b.pontos - a.pontos;   // 1º pontos
+                if (b.exatos !== a.exatos) return b.exatos - a.exatos;   // 2º placares exatos
+                if (b.acertos !== a.acertos) return b.acertos - a.acertos; // 3º acertos
+                return 0; // empate total
+            });
+
+            // Detecta empates totais entre posições relevantes (top 3 ou qualquer posição empatada)
+            const empateTotal = [];
+            for (let i = 0; i < ranking.length - 1; i++) {
+                const a = ranking[i], b = ranking[i + 1];
+                if (a.pontos === b.pontos && a.exatos === b.exatos && a.acertos === b.acertos && a.pontos > 0) {
+                    if (!empateTotal.includes(a.nome)) empateTotal.push(a.nome);
+                    if (!empateTotal.includes(b.nome)) empateTotal.push(b.nome);
+                }
+            }
 
             const maxPts = ranking[0]?.pontos || 1;
             const medals = ['🥇', '🥈', '🥉'];
@@ -3125,14 +3145,37 @@
 
             const tbody = document.querySelector('#tabelaRanking tbody');
             tbody.innerHTML = '';
-            ranking.forEach((jogador, index) => {
-                const tr = document.createElement('tr');
-                const cls = index < 3 && jogador.pontos > 0 ? rowClass[index] : '';
-                if (cls) tr.className = cls;
 
-                const medal = index < 3 && jogador.pontos > 0
-                    ? `<span class="rank-medal">${medals[index]}</span>`
-                    : `<span style="color:var(--text-dim);font-size:13px;">${index + 1}º</span>`;
+            // Aviso de empate total
+            const avisoEl = document.getElementById('avisoEmpateTotal');
+            if (avisoEl) {
+                if (empateTotal.length > 0) {
+                    avisoEl.innerHTML = `⚠️ <strong>Empate total!</strong> ${empateTotal.join(' e ')} têm pontos, placares exatos e acertos iguais. É necessário definir um critério extra de desempate.`;
+                    avisoEl.style.display = 'block';
+                } else {
+                    avisoEl.style.display = 'none';
+                }
+            }
+
+            // Calcula posições considerando empates (mesma posição para empatados)
+            let posicao = 1;
+            ranking.forEach((jogador, index) => {
+                if (index > 0) {
+                    const prev = ranking[index - 1];
+                    if (jogador.pontos !== prev.pontos || jogador.exatos !== prev.exatos || jogador.acertos !== prev.acertos) {
+                        posicao = index + 1;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                const empatadoTotal = empateTotal.includes(jogador.nome);
+                const cls = posicao <= 3 && jogador.pontos > 0 ? rowClass[posicao - 1] : '';
+                if (cls) tr.className = cls;
+                if (empatadoTotal) tr.style.outline = '1px solid var(--amarelo)';
+
+                const medal = posicao <= 3 && jogador.pontos > 0
+                    ? `<span class="rank-medal">${medals[posicao - 1]}</span>`
+                    : `<span style="color:var(--text-dim);font-size:13px;">${posicao}º</span>`;
 
                 const pct = maxPts > 0 ? Math.round((jogador.pontos / maxPts) * 100) : 0;
                 const bar = `<div class="pts-bar-wrap">
@@ -3140,18 +3183,19 @@
                             <div class="pts-bar"><div class="pts-bar-fill" style="width:${pct}%"></div></div>
                          </div>`;
 
+                const tieInfo = `<span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">⭐${jogador.exatos} exatos · ✓${jogador.acertos} acertos</span>`;
+
                 tr.innerHTML = `
                 <td>${medal}</td>
                 <td class="ranking-nome-clicavel" onclick="abrirExplorerPorIntegrante('${jogador.nome}')"
                     title="Ver palpites de ${jogador.nome}" style="font-weight:600; cursor:pointer;">
                     ${jogador.nome} <span class="ranking-hint">👁</span>
+                    ${tieInfo}
                 </td>
                 <td>${bar}</td>
             `;
                 tbody.appendChild(tr);
             });
-
-            // Explorer é re-aberto pelo usuário via clique — sem auto-refresh necessário
         }
         window.calcularResultados = calcularResultados;
 
