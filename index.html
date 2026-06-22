@@ -2491,6 +2491,24 @@
 
         const integrantes = ["Diego", "Duda", "Leo", "Adriana", "Elmir", "Henrique", "Saad", "Thavynne", "Cadu", "Rodrigo", "Rô", "Samuel", "Barbara", "Robson"];
 
+        // Data e hora de envio dos palpites de cada integrante
+        const timestampsPalpites = {
+            'Diego':    { data: '24 de Maio',  hora: '22:51' },
+            'Rô':       { data: '1 de Junho',  hora: '10:45' },
+            'Rodrigo':  { data: '1 de Junho',  hora: '19:34' },
+            'Leo':      { data: '1 de Junho',  hora: '19:41' },
+            'Saad':     { data: '1 de Junho',  hora: '19:49' },
+            'Adriana':  { data: '2 de Junho',  hora: '08:29' },
+            'Elmir':    { data: '2 de Junho',  hora: '09:08' },
+            'Duda':     { data: '2 de Junho',  hora: '15:58' },
+            'Cadu':     { data: '2 de Junho',  hora: '16:25' },
+            'Barbara':  { data: '2 de Junho',  hora: '16:31' },
+            'Robson':   { data: '7 de Junho',  hora: '17:17' },
+            'Henrique': { data: '8 de Junho',  hora: '13:23' },
+            'Thavynne': { data: '8 de Junho',  hora: '13:51' },
+            'Samuel':   { data: '8 de Junho',  hora: '13:55' },
+        };
+
         const jogosCopa = [
             // ── RODADA 1 ──────────────────────────────────────────
             { id: "méxico-áfrica do sul", data: "11/jun · Qui · 16h", t1: "México", b1: "mx", t2: "África do Sul", b2: "za", rodada: 1, grupo: "A" },
@@ -3699,6 +3717,41 @@
             const totalJogados = cheios + parciais + erros;
             const aproveitamento = totalJogados > 0 ? Math.round(((cheios * 3 + parciais) / (totalJogados * 3)) * 100) : 0;
 
+            // Curiosidades — calculadas só dos placares exatos
+            let maiorGoleada = null;
+            let maisGols = null;
+            jogosCopa.forEach(j => {
+                const p = palpitesDoJogador[j.id];
+                const real = cacheResultados[j.id];
+                if (!p || !real) return;
+                if (real.gols1 === p.gols1 && real.gols2 === p.gols2) {
+                    const diff = Math.abs(real.gols1 - real.gols2);
+                    const total = real.gols1 + real.gols2;
+                    if (!maiorGoleada || diff > maiorGoleada.diff)
+                        maiorGoleada = { gols1: real.gols1, gols2: real.gols2, diff, t1: j.t1, t2: j.t2 };
+                    if (!maisGols || total > maisGols.total)
+                        maisGols = { gols1: real.gols1, gols2: real.gols2, total, t1: j.t1, t2: j.t2 };
+                }
+            });
+
+            const curiosidadesHtml = cheios > 0 ? `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+                <div style="flex:1;min-width:120px;background:rgba(255,255,255,0.04);border:1px solid var(--card-brd);border-radius:10px;padding:10px 12px;text-align:center;">
+                    <div style="font-size:18px;font-weight:800;color:var(--amarelo);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">
+                        🏹 ${maiorGoleada ? `${maiorGoleada.gols1}×${maiorGoleada.gols2}` : '—'}
+                    </div>
+                    <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">maior goleada cravada</div>
+                    ${maiorGoleada ? `<div style="font-size:10px;color:var(--text-dim);margin-top:3px;opacity:0.7;">${maiorGoleada.t1} × ${maiorGoleada.t2}</div>` : ''}
+                </div>
+                <div style="flex:1;min-width:120px;background:rgba(255,255,255,0.04);border:1px solid var(--card-brd);border-radius:10px;padding:10px 12px;text-align:center;">
+                    <div style="font-size:18px;font-weight:800;color:var(--amarelo);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">
+                        ⚽ ${maisGols ? `${maisGols.gols1}×${maisGols.gols2}` : '—'}
+                    </div>
+                    <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">mais gols num exato</div>
+                    ${maisGols ? `<div style="font-size:10px;color:var(--text-dim);margin-top:3px;opacity:0.7;">${maisGols.t1} × ${maisGols.t2}</div>` : ''}
+                </div>
+            </div>` : '';
+
             const statsHtml = `
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
                 <div class="stat-box stat-pts">
@@ -3758,8 +3811,10 @@
             });
 
             const titulo = `👤 ${nome}`;
-            const dica = 'Clique numa partida para ver os palpites de todos';
+            const ts = timestampsPalpites[nome];
+            const dica = ts ? `📅 Palpites enviados em ${ts.data} às ${ts.hora}` : 'Clique numa partida para ver os palpites de todos';
             const html = statsHtml
+                + curiosidadesHtml
                 + `<div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:rgba(0,0,0,0.2);padding:4px;">${linhas}</div>`;
 
             mostrarExplorer(titulo, dica, html, 'integrante');
