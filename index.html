@@ -3,6 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a1f0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bolão Copa">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Bolão Oficial — Copa 2026</title>
     <link rel="icon"
@@ -1899,6 +1905,7 @@
                 <div class="grid">
                     <div class="card">
                         <h2>📊 Classificação Geral</h2>
+                        <div id="avisoEmpateTotal" style="display:none;background:rgba(255,223,0,0.12);border:1px solid var(--amarelo);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--amarelo);margin-bottom:12px;line-height:1.5;"></div>
                         <table id="tabelaRanking">
                             <thead>
                                 <tr>
@@ -2226,6 +2233,15 @@
                          <div id="manual3Container"></div>
                      </div>
  
+                     <!-- ══ SINCRONIZAÇÃO API ══ -->
+                     <div class="card" style="margin-bottom:16px;" id="cardApiSync">
+                         <h2 style="font-size:16px;margin-bottom:6px;">🤖 Sincronização Automática</h2>
+                         <p style="font-size:12px;color:#64748b;margin-bottom:12px;">O Worker no Cloudflare atualiza os resultados automaticamente a cada 15 minutos. Use o botão abaixo para forçar uma atualização imediata.</p>
+                         <button onclick="forceSyncAgora()" style="width:100%;padding:10px;font-size:13px;background:rgba(255,255,255,0.08);color:var(--text);border:1px solid var(--card-brd);border-radius:8px;cursor:pointer;font-weight:700;">🔄 Forçar Sync Agora</button>
+                         <div id="syncStatus" style="margin-top:10px;font-size:12px;color:var(--text-dim);min-height:18px;"></div>
+                         <div id="syncLog" style="margin-top:6px;font-size:11px;color:#64748b;max-height:100px;overflow-y:auto;line-height:1.6;"></div>
+                     </div>
+
                      <div class="card" style="margin-bottom: 30px;">
                          <h3>👥 Status dos Participantes</h3>
 
@@ -2244,7 +2260,7 @@
      ===================================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection }
+        import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, onSnapshot }
             from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // ── Configuração do seu projeto Firebase ──────────────────
@@ -2583,8 +2599,97 @@
             await carregarPalpitesKO();
             atualizarFasePublica();
             atualizarBotoesFaseAdmin();
+            inicializarListeners();
         }
         window.inicializarApp = inicializarApp;
+
+        // ── Listeners em tempo real ────────────────────────────────
+        function inicializarListeners() {
+
+            // 1. Resultados da fase de grupos
+            onSnapshot(doc(db, 'resultados', 'jogos'), (snap) => {
+                if (!snap.exists()) return;
+                const novo = {};
+                for (const [key, val] of Object.entries(snap.data())) {
+                    const m = val;
+                    if (m && m.gols1 !== undefined) {
+                        novo[key] = {
+                            gols1: Number(m.gols1),
+                            gols2: Number(m.gols2),
+                            vencedor: Number(m.vencedor ?? 0)
+                        };
+                    }
+                }
+                // Só atualiza se mudou algo
+                if (JSON.stringify(novo) === JSON.stringify(cacheResultados)) return;
+                cacheResultados = novo;
+                sincronizarEspelhoPublico(cacheResultados);
+                preencherInputsResultados(cacheResultados);
+                calcularResultados();
+                atualizarFasePublica();
+                mostrarToast('🔔 Resultados atualizados!');
+            });
+
+            // 2. Resultados KO (cada fase)
+            const fasesKO_ids = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
+            fasesKO_ids.forEach(fase => {
+                onSnapshot(doc(db, 'resultados_ko', fase), (snap) => {
+                    if (!snap.exists()) return;
+                    const novo = {};
+                    for (const [key, val] of Object.entries(snap.data())) {
+                        if (val && val.gols1 !== undefined) {
+                            novo[key] = {
+                                gols1: Number(val.gols1),
+                                gols2: Number(val.gols2),
+                                vencedor: Number(val.vencedor ?? 0)
+                            };
+                        }
+                    }
+                    if (JSON.stringify(novo) === JSON.stringify(cacheResultadosKO[fase])) return;
+                    cacheResultadosKO[fase] = novo;
+                    calcularResultados();
+                    atualizarFasePublica();
+                    mostrarToast(`🔔 Resultados de ${fase} atualizados!`);
+                });
+            });
+
+            // 3. Fase atual (config)
+            onSnapshot(doc(db, 'config', 'fase_atual'), (snap) => {
+                if (!snap.exists()) return;
+                const novaFase = snap.data().fase;
+                if (novaFase === faseAtualManual) return;
+                faseAtualManual = novaFase;
+                atualizarFasePublica();
+                atualizarVisibilidadeAbas();
+                atualizarBotoesFaseAdmin();
+            });
+        }
+
+        // Toast de notificação
+        function mostrarToast(msg) {
+            let toast = document.getElementById('toastNotif');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toastNotif';
+                toast.style.cssText = `
+                    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+                    background:var(--card-bg);border:1px solid var(--verde);color:var(--text);
+                    padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;
+                    box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:9999;
+                    transition:transform 0.3s ease, opacity 0.3s ease;opacity:0;
+                `;
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            toast.style.opacity = '1';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.style.transform = 'translateX(-50%) translateY(80px)';
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+        window.mostrarToast = mostrarToast;
 
         // ── Navegação ─────────────────────────────────────────────
         function mudarAba(aba) {
@@ -3070,6 +3175,8 @@
             let ranking = [];
             integrantes.forEach(nome => {
                 let pontos = 0;
+                let exatos = 0;   // placares exatos (critério 1)
+                let acertos = 0;  // acertos de resultado sem placar exato (critério 2)
 
                 // Pontos da fase de grupos
                 const palpiteDoJogador = cachePalpites[nome];
@@ -3079,15 +3186,15 @@
                             const real = cacheResultados[idJogo];
                             const palpite = palpiteDoJogador[idJogo];
                             if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) {
-                                pontos += 3;
+                                pontos += 3; exatos++;
                             } else if (real.vencedor === palpite.vencedor) {
-                                pontos += 1;
+                                pontos += 1; acertos++;
                             }
                         }
                     }
                 }
 
-                // Pontos das fases KO (até a fase atual)
+                // Pontos das fases KO
                 const fasesOrdem = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
                 for (const fase of fasesOrdem) {
                     const resKO = cacheResultadosKO[fase];
@@ -3099,16 +3206,39 @@
                         const palpite = palpitesKO[idJogo];
                         if (!palpite) continue;
                         if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) {
-                            pontos += 3;
+                            pontos += 3; exatos++;
                         } else if (real.vencedor === palpite.vencedor) {
-                            pontos += 1;
+                            pontos += 1; acertos++;
                         }
                     }
                 }
 
-                ranking.push({ nome, pontos });
+                ranking.push({ nome, pontos, exatos, acertos });
             });
-            ranking.sort((a, b) => b.pontos - a.pontos);
+
+            // Ordenação com critérios de desempate
+            ranking.sort((a, b) => {
+                if (b.pontos !== a.pontos) return b.pontos - a.pontos;   // 1º pontos
+                if (b.exatos !== a.exatos) return b.exatos - a.exatos;   // 2º placares exatos
+                if (b.acertos !== a.acertos) return b.acertos - a.acertos; // 3º acertos
+                return 0; // empate total
+            });
+
+            // Detecta grupos de empate separados
+            const gruposEmpate = [];
+            let gi = 0;
+            while (gi < ranking.length) {
+                let gj = gi + 1;
+                while (gj < ranking.length &&
+                    ranking[gj].pontos === ranking[gi].pontos &&
+                    ranking[gj].exatos === ranking[gi].exatos &&
+                    ranking[gi].pontos > 0) { gj++; }
+                if (gj > gi + 1) gruposEmpate.push(ranking.slice(gi, gj).map(r => r.nome));
+                gi = gj;
+            }
+
+            // Lista flat de todos empatados (para highlight nas linhas)
+            const empateTotal = gruposEmpate.flat();
 
             const maxPts = ranking[0]?.pontos || 1;
             const medals = ['🥇', '🥈', '🥉'];
@@ -3116,14 +3246,43 @@
 
             const tbody = document.querySelector('#tabelaRanking tbody');
             tbody.innerHTML = '';
-            ranking.forEach((jogador, index) => {
-                const tr = document.createElement('tr');
-                const cls = index < 3 && jogador.pontos > 0 ? rowClass[index] : '';
-                if (cls) tr.className = cls;
 
-                const medal = index < 3 && jogador.pontos > 0
-                    ? `<span class="rank-medal">${medals[index]}</span>`
-                    : `<span style="color:var(--text-dim);font-size:13px;">${index + 1}º</span>`;
+            // Aviso de empate — um por grupo
+            const avisoEl = document.getElementById('avisoEmpateTotal');
+            if (avisoEl) {
+                if (gruposEmpate.length > 0) {
+                    avisoEl.innerHTML = gruposEmpate.map(grupo => {
+                        const pts = ranking.find(r => r.nome === grupo[0]).pontos;
+                        const exatos = ranking.find(r => r.nome === grupo[0]).exatos;
+                        return `<div style="margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid rgba(255,223,0,0.2);">
+                            ⚠️ <strong>Empate:</strong> ${grupo.join(' e ')} — ${pts} pts · ${exatos} exatos
+                        </div>`;
+                    }).join('') + `<div style="font-size:11px;opacity:0.7;margin-top:4px;">É necessário definir um critério extra de desempate para cada grupo acima.</div>`;
+                    avisoEl.style.display = 'block';
+                } else {
+                    avisoEl.style.display = 'none';
+                }
+            }
+
+            // Calcula posições considerando empates (mesma posição para empatados)
+            let posicao = 1;
+            ranking.forEach((jogador, index) => {
+                if (index > 0) {
+                    const prev = ranking[index - 1];
+                    if (jogador.pontos !== prev.pontos || jogador.exatos !== prev.exatos || jogador.acertos !== prev.acertos) {
+                        posicao = index + 1;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                const empatadoTotal = empateTotal.includes(jogador.nome);
+                const cls = posicao <= 3 && jogador.pontos > 0 ? rowClass[posicao - 1] : '';
+                if (cls) tr.className = cls;
+                if (empatadoTotal) tr.style.outline = '1px solid var(--amarelo)';
+
+                const medal = posicao <= 3 && jogador.pontos > 0
+                    ? `<span class="rank-medal">${medals[posicao - 1]}</span>`
+                    : `<span style="color:var(--text-dim);font-size:13px;">${posicao}º</span>`;
 
                 const pct = maxPts > 0 ? Math.round((jogador.pontos / maxPts) * 100) : 0;
                 const bar = `<div class="pts-bar-wrap">
@@ -3131,18 +3290,19 @@
                             <div class="pts-bar"><div class="pts-bar-fill" style="width:${pct}%"></div></div>
                          </div>`;
 
+                const tieInfo = `<span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">⭐${jogador.exatos} exatos · ✓${jogador.acertos} acertos</span>`;
+
                 tr.innerHTML = `
                 <td>${medal}</td>
                 <td class="ranking-nome-clicavel" onclick="abrirExplorerPorIntegrante('${jogador.nome}')"
                     title="Ver palpites de ${jogador.nome}" style="font-weight:600; cursor:pointer;">
                     ${jogador.nome} <span class="ranking-hint">👁</span>
+                    ${tieInfo}
                 </td>
                 <td>${bar}</td>
             `;
                 tbody.appendChild(tr);
             });
-
-            // Explorer é re-aberto pelo usuário via clique — sem auto-refresh necessário
         }
         window.calcularResultados = calcularResultados;
 
@@ -3350,6 +3510,52 @@
         }
         window.renderizarPlacaresKOPublico = renderizarPlacaresKOPublico;
 
+        // ══ SINCRONIZAÇÃO VIA CLOUDFLARE WORKER ══════════════════
+
+        const WORKER_URL = 'https://bolao-football-proxy.luizhcabralg.workers.dev';
+
+        function setSyncStatus(msg) {
+            const el = document.getElementById('syncStatus');
+            if (el) el.textContent = msg;
+        }
+
+        function logSync(msg) {
+            const el = document.getElementById('syncLog');
+            if (!el) return;
+            const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            el.innerHTML = `[${hora}] ${msg}<br>` + el.innerHTML;
+        }
+
+        async function forceSyncAgora() {
+            setSyncStatus('⏳ Forçando sincronização...');
+            try {
+                const r = await fetch(WORKER_URL);
+                const d = await r.json();
+                (d.log || []).forEach(l => logSync(l));
+                if (d.atualizados > 0) {
+                    // Recarrega resultados do Firebase
+                    const novos = await window.fb_carregarResultados();
+                    if (novos) {
+                        cacheResultados = novos;
+                        sincronizarEspelhoPublico(cacheResultados);
+                        preencherInputsResultados(cacheResultados);
+                        calcularResultados();
+                        atualizarFasePublica();
+                    }
+                    setSyncStatus(`✅ ${d.atualizados} resultado(s) atualizados — ${new Date().toLocaleTimeString('pt-BR')}`);
+                } else {
+                    setSyncStatus(`ℹ️ Tudo atualizado — ${new Date().toLocaleTimeString('pt-BR')}`);
+                }
+            } catch (e) {
+                setSyncStatus('❌ Erro ao conectar com o Worker.');
+                console.error(e);
+            }
+        }
+        window.forceSyncAgora = forceSyncAgora;
+
+        // ═════════════════════════════════════════════════════════
+
+        // ═════════════════════════════════════════════════════════
 
         function atualizarMonitorBanco() {
             const container = document.getElementById('listaChips');
@@ -4592,6 +4798,13 @@
         window.limparManual3Individual = limparManual3Individual;
     </script>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 
 </html>
