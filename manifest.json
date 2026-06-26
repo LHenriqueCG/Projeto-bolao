@@ -1,12 +1,13 @@
 {
-  "name": "Bolão Copa 2026",
+  "name": "Painel do Bolão Oficial — Copa 2026",
   "short_name": "Bolão Copa",
-  "description": "Bolão da Copa do Mundo 2026",
-  "start_url": "/",
+  "description": "Acompanhe o bolão da Copa do Mundo 2026 em tempo real.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a1f0a",
+  "background_color": "#061209",
   "theme_color": "#0a1f0a",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,5 +21,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "categories": ["sports", "games"]
 }

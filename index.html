@@ -379,6 +379,34 @@
             transform: none;
             box-shadow: none;
         }
+.btn-notif {
+    width: auto !important;
+    background: rgba(255, 223, 0, 0.1) !important;
+    border: 1px solid rgba(255, 223, 0, 0.4) !important;
+    color: #FFDF00 !important;
+    font-size: 11px !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    text-transform: uppercase !important;
+    margin-top: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-weight: 600 !important;
+    letter-spacing: 1px !important;
+}
+
+.btn-notif:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    filter: brightness(1.1) !important;
+}
+
+.btn-notif:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
 
         /* ══ LOGIN ══════════════════════════════════════════ */
         .login-box {
@@ -1876,6 +1904,7 @@
             opacity: 0.35;
             cursor: not-allowed;
         }
+        
     </style>
 </head>
 
@@ -1891,6 +1920,13 @@
                 <div class="header-diamond"><span>🏆</span></div>
                 <div class="subtitle">Painel de Palpites &amp; Ranking</div>
             </div>
+        </div><!-- /site-header -->
+
+        <!-- Botão de notificações -->
+        <div style="text-align:center; padding: 8px 0; background: var(--card-bg); border-bottom: 1px solid var(--card-brd);">
+            <button id="btnNotif" class="btn-notif" onclick="pedirPermissaoNotificacao().then(atualizarBtnNotif)">
+                🔔 Ativar notificações
+            </button>
         </div>
 
         <div class="tabs-menu">
@@ -2242,6 +2278,20 @@
                          <div id="syncLog" style="margin-top:6px;font-size:11px;color:#64748b;max-height:100px;overflow-y:auto;line-height:1.6;"></div>
                      </div>
 
+                     <!-- ══ HISTÓRICO DE ALTERAÇÕES ══ -->
+                     <div class="card" style="margin-bottom:16px;">
+                         <h2>📋 Histórico de Alterações</h2>
+                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                             <span style="font-size:12px;color:var(--text-dim);">Últimas alterações de resultados (grupos e KO)</span>
+                             <button onclick="limparHistorico()" class="btn-clear-results">🧹 Limpar</button>
+                         </div>
+                         <div id="logHistorico" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+                             <div style="font-size:12px;color:var(--text-dim);text-align:center;padding:20px 0;">
+                                 Nenhuma alteração registrada ainda.
+                             </div>
+                         </div>
+                     </div>
+
                      <div class="card" style="margin-bottom: 30px;">
                          <h3>👥 Status dos Participantes</h3>
 
@@ -2275,6 +2325,11 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        // Expõe db, doc e onSnapshot para scripts não-módulo
+        window._db = db;
+        window._doc = doc;
+        window._onSnapshot = onSnapshot;
 
         // ── Helpers de UI ─────────────────────────────────────────
         function mostrarStatus(msg, tipo) {
@@ -2336,15 +2391,15 @@
             }
         };
 
-        window.fb_carregarResultados = async function () {
-            try {
-                const snap = await getDoc(doc(db, 'resultados', 'jogos'));
-                return snap.exists() ? snap.data() : {};
-            } catch (e) {
-                console.error('Erro ao carregar resultados', e);
-                return {};
-            }
-        };
+        window.fb_iniciarListenerResultados = function (callback) {
+    const ref = doc(db, 'resultados', 'jogos');
+    return onSnapshot(ref, (snap) => {
+        const dados = snap.exists() ? snap.data() : {};
+        callback(dados);
+    }, (erro) => {
+        console.error('Erro no listener de resultados', erro);
+    });
+};
 
         window.fb_carregarTodosPalpites = async function () {
             try {
@@ -2480,7 +2535,16 @@
         };
 
         // ── Inicializa a aplicação após o Firebase estar pronto ───
-        window.addEventListener('load', inicializarApp);
+        // Seta flag indicando que Firebase está pronto
+        window._firebaseReady = true;
+        window.addEventListener('load', () => {
+            // Pequeno delay garante que o script de lógica já registrou window.inicializarApp
+            setTimeout(() => {
+                if (typeof window.inicializarApp === 'function') {
+                    window.inicializarApp();
+                }
+            }, 0);
+        });
     </script>
 
     <!-- =====================================================
@@ -2581,14 +2645,9 @@
             renderizarListaJogosPublico();
 
             // Carrega tudo do Firestore em paralelo
-            const [todosOsPalpites, resultados] = await Promise.all([
-                window.fb_carregarTodosPalpites(),
-                window.fb_carregarResultados()
-            ]);
+           cachePalpites = await window.fb_carregarTodosPalpites();
 
-            cachePalpites = todosOsPalpites;
-            cacheResultados = resultados;
-            faseAtualManual = await window.fb_carregarFaseAtual();
+faseAtualManual = await window.fb_carregarFaseAtual();
 
             sincronizarEspelhoPublico(cacheResultados);
             preencherInputsResultados(cacheResultados);
@@ -2603,31 +2662,48 @@
         }
         window.inicializarApp = inicializarApp;
 
+
         // ── Listeners em tempo real ────────────────────────────────
         function inicializarListeners() {
+            const onSnapshot = window._onSnapshot;
+            const doc = window._doc;
+            const db = window._db;
 
             // 1. Resultados da fase de grupos
             onSnapshot(doc(db, 'resultados', 'jogos'), (snap) => {
                 if (!snap.exists()) return;
                 const novo = {};
                 for (const [key, val] of Object.entries(snap.data())) {
-                    const m = val;
-                    if (m && m.gols1 !== undefined) {
+                    if (val && val.gols1 !== undefined) {
                         novo[key] = {
-                            gols1: Number(m.gols1),
-                            gols2: Number(m.gols2),
-                            vencedor: Number(m.vencedor ?? 0)
+                            gols1: Number(val.gols1),
+                            gols2: Number(val.gols2),
+                            vencedor: Number(val.vencedor ?? 0)
                         };
                     }
                 }
-                // Só atualiza se mudou algo
                 if (JSON.stringify(novo) === JSON.stringify(cacheResultados)) return;
+
+                // Detecta jogos alterados/novos
+                Object.entries(novo).forEach(([jogoId, res]) => {
+                    const tinha = cacheResultados?.[jogoId];
+                    const mudou = !tinha || tinha.gols1 !== res.gols1 || tinha.gols2 !== res.gols2;
+                    if (mudou) {
+                        registrarLog(jogoId, res.gols1, res.gols2, 'grupos');
+                        const nomeJogo = jogoId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        const msg = `⚽ ${nomeJogo}: ${res.gols1} × ${res.gols2} foi atualizado!`;
+                        mostrarToast(msg);
+                        if (Notification.permission === 'granted') {
+                            new Notification('🔔 Bolão Copa 2026', { body: msg, icon: './icon-192.png', tag: jogoId });
+                        }
+                    }
+                });
+
                 cacheResultados = novo;
                 sincronizarEspelhoPublico(cacheResultados);
                 preencherInputsResultados(cacheResultados);
                 calcularResultados();
                 atualizarFasePublica();
-                mostrarToast('🔔 Resultados atualizados!');
             });
 
             // 2. Resultados KO (cada fase)
@@ -2646,10 +2722,25 @@
                         }
                     }
                     if (JSON.stringify(novo) === JSON.stringify(cacheResultadosKO[fase])) return;
+
+                    // Detecta jogos KO alterados/novos
+                    Object.entries(novo).forEach(([jogoId, res]) => {
+                        const tinha = cacheResultadosKO[fase]?.[jogoId];
+                        const mudou = !tinha || tinha.gols1 !== res.gols1 || tinha.gols2 !== res.gols2;
+                        if (mudou) {
+                            registrarLog(jogoId, res.gols1, res.gols2, fase);
+                            const nomeJogo = jogoId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            const msg = `⚽ ${nomeJogo}: ${res.gols1} × ${res.gols2} foi atualizado!`;
+                            mostrarToast(msg);
+                            if (Notification.permission === 'granted') {
+                                new Notification('🔔 Bolão Copa 2026', { body: msg, icon: './icon-192.png', tag: jogoId });
+                            }
+                        }
+                    });
+
                     cacheResultadosKO[fase] = novo;
                     calcularResultados();
                     atualizarFasePublica();
-                    mostrarToast(`🔔 Resultados de ${fase} atualizados!`);
                 });
             });
 
@@ -2664,6 +2755,51 @@
                 atualizarBotoesFaseAdmin();
             });
         }
+
+        // Log de histórico
+        const _logEntradas = [];
+
+        function registrarLog(jogoId, gols1, gols2, fase) {
+            const agora = new Date();
+            const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const data = agora.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            const nomeJogo = jogoId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const labelFase = fase === 'grupos' ? 'Grupos' : fase.charAt(0).toUpperCase() + fase.slice(1);
+            _logEntradas.unshift({ nomeJogo, gols1, gols2, labelFase, hora, data });
+            if (_logEntradas.length > 50) _logEntradas.pop();
+            renderizarLog();
+        }
+
+        function renderizarLog() {
+            const container = document.getElementById('logHistorico');
+            if (!container) return;
+            if (_logEntradas.length === 0) {
+                container.innerHTML = '<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:20px 0;">Nenhuma alteração registrada ainda.</div>';
+                return;
+            }
+            container.innerHTML = _logEntradas.map(e => `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,0.2);border-radius:8px;border-left:3px solid var(--verde);">
+                    <span style="font-size:18px;">⚽</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;color:var(--text);">${e.nomeJogo}</div>
+                        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">${e.labelFase}</div>
+                    </div>
+                    <div style="text-align:center;min-width:60px;">
+                        <div style="font-size:16px;font-weight:800;color:var(--amarelo);font-family:'Bebas Neue',sans-serif;letter-spacing:2px;">${e.gols1} &times; ${e.gols2}</div>
+                    </div>
+                    <div style="text-align:right;min-width:70px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--text-dim);">${e.hora}</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,0.3);">${e.data}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function limparHistorico() {
+            _logEntradas.length = 0;
+            renderizarLog();
+        }
+        window.limparHistorico = limparHistorico;
 
         // Toast de notificação
         function mostrarToast(msg) {
@@ -4799,11 +4935,42 @@
     </script>
 
     <script>
+        // ── Service Worker ────────────────────────────────────────
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             });
         }
+
+        // ── Notificações ──────────────────────────────────────────
+        async function pedirPermissaoNotificacao() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                await Notification.requestPermission();
+            }
+            atualizarBtnNotif();
+        }
+
+        function atualizarBtnNotif() {
+            const btn = document.getElementById('btnNotif');
+            if (!btn) return;
+            const p = Notification.permission;
+            if (p === 'granted') {
+                btn.textContent = '✅ Notificações ativas';
+                btn.disabled = true;
+                btn.style.background = 'rgba(0,156,59,0.2)';
+                btn.style.borderColor = '#009c3b';
+                btn.style.color = '#4cff7a';
+            } else if (p === 'denied') {
+                btn.textContent = '🔕 Notificações bloqueadas';
+                btn.disabled = true;
+                btn.style.background = 'rgba(200,0,0,0.15)';
+                btn.style.borderColor = '#e53935';
+                btn.style.color = '#ff6b6b';
+            }
+        }
+
+        window.pedirPermissaoNotificacao = pedirPermissaoNotificacao;
+        window.addEventListener('load', atualizarBtnNotif);
     </script>
 </body>
 
