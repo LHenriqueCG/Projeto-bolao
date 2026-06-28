@@ -2862,16 +2862,95 @@
         window.abrirExplorerPorJogo = abrirExplorerPorJogo;
 
         // ── Palpites ──────────────────────────────────────────────
+
+        // Normaliza string: minúsculo, sem acento, sem caracteres especiais
+        function normalizarNomeTime(nome) {
+            return nome
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // remove acentos
+                .replace(/[^a-z0-9 ]/g, '')      // remove pontuação
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        // Dicionário de aliases → forma normalizada canônica
+        // A chave é o alias normalizado, o valor é como o nome do time ficará normalizado
+        const TEAM_ALIASES = {
+            // EUA / Estados Unidos
+            'eua': 'estados unidos',
+            'usa': 'estados unidos',
+            'estados unidos': 'estados unidos',
+
+            // Congo
+            'congo': 'republica democratica do congo',
+            'dr congo': 'republica democratica do congo',
+            'rd congo': 'republica democratica do congo',
+            'rep dem do congo': 'republica democratica do congo',
+            'rep democratica do congo': 'republica democratica do congo',
+            'republica do congo': 'republica democratica do congo',
+
+            // Bósnia
+            'bosnia': 'bosnia e herzegovina',
+            'bosnia herzegovina': 'bosnia e herzegovina',
+
+            // Suíça
+            'suica': 'suica',
+            'suissa': 'suica',
+
+            // Coreia
+            'coreia': 'coreia do sul',
+            'coreia sul': 'coreia do sul',
+            'sul coreia': 'coreia do sul',
+
+            // Costa do Marfim
+            'marfim': 'costa do marfim',
+            'ivory coast': 'costa do marfim',
+
+            // Outros nomes comuns
+            'holanda': 'paises baixos',
+            'netherlands': 'paises baixos',
+            'irlanda norte': 'irlanda do norte',
+            'north ireland': 'irlanda do norte',
+            'arabia': 'arabia saudita',
+            'saudi arabia': 'arabia saudita',
+            'nova zelandia': 'nova zelandia',
+            'new zealand': 'nova zelandia',
+            'africa do sul': 'africa do sul',
+            'south africa': 'africa do sul',
+            'cabo verde': 'cabo verde',
+            'cape verde': 'cabo verde',
+        };
+
+        // Resolve o nome normalizado de um time (aplica aliases)
+        function resolverNomeNormalizado(nome) {
+            const norm = normalizarNomeTime(nome);
+            return TEAM_ALIASES[norm] ?? norm;
+        }
+
+        // Verifica se a linha contém o nome de um time (com suporte a aliases e normalização)
+        function linhaContemTime(linhaNorm, nomeTime) {
+            const nomeResolvido = resolverNomeNormalizado(nomeTime);
+            // Checa se a linha (já normalizada) contém o nome resolvido do time cadastrado
+            if (linhaNorm.includes(nomeResolvido)) return true;
+            // Checa também se qualquer alias que resolva para o mesmo nome canônico está na linha
+            // (útil quando o time cadastrado tem nome longo mas o alias é curto)
+            for (const [alias, canonico] of Object.entries(TEAM_ALIASES)) {
+                if (canonico === nomeResolvido && linhaNorm.includes(alias)) return true;
+            }
+            return false;
+        }
+
         function extrairPlacaresDoTexto(texto) {
             if (!texto) return {};
             const lines = texto.split('\n');
             const palpitesMapeados = {};
             lines.forEach(linha => {
-                const linhaMinuscula = linha.toLowerCase().trim();
-                const numerosEncontrados = linhaMinuscula.match(/\d+/g);
+                const linhaNorm = normalizarNomeTime(linha);
+                const numerosEncontrados = linhaNorm.match(/\d+/g);
                 if (numerosEncontrados && numerosEncontrados.length >= 2) {
                     jogosCopa.forEach(jogo => {
-                        if (linhaMinuscula.includes(jogo.t1.toLowerCase()) && linhaMinuscula.includes(jogo.t2.toLowerCase())) {
+                        if (linhaContemTime(linhaNorm, jogo.t1) && linhaContemTime(linhaNorm, jogo.t2)) {
                             const gols1 = parseInt(numerosEncontrados[numerosEncontrados.length - 2]);
                             const gols2 = parseInt(numerosEncontrados[numerosEncontrados.length - 1]);
                             if (!isNaN(gols1) && !isNaN(gols2)) {
@@ -2894,16 +2973,16 @@
             const jogos = fasesKO[fase].jogos;
 
             lines.forEach(linha => {
-                const linhaMinuscula = linha.toLowerCase().trim();
-                const numeros = linhaMinuscula.match(/\d+/g);
+                const linhaNorm = normalizarNomeTime(linha);
+                const numeros = linhaNorm.match(/\d+/g);
                 if (numeros && numeros.length >= 2) {
                     jogos.forEach(jogo => {
                         const tA = resolverTimeKO(jogo.fonteA);
                         const tB = resolverTimeKO(jogo.fonteB);
-                        const nomeA = (tA ? tA.nome : jogo.labelA).toLowerCase();
-                        const nomeB = (tB ? tB.nome : jogo.labelB).toLowerCase();
+                        const nomeA = tA ? tA.nome : jogo.labelA;
+                        const nomeB = tB ? tB.nome : jogo.labelB;
 
-                        if (linhaMinuscula.includes(nomeA) && linhaMinuscula.includes(nomeB)) {
+                        if (linhaContemTime(linhaNorm, nomeA) && linhaContemTime(linhaNorm, nomeB)) {
                             const g1 = parseInt(numeros[numeros.length - 2]);
                             const g2 = parseInt(numeros[numeros.length - 1]);
                             if (!isNaN(g1) && !isNaN(g2)) {
