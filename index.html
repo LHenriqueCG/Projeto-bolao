@@ -2862,81 +2862,65 @@
         window.abrirExplorerPorJogo = abrirExplorerPorJogo;
 
         // ── Palpites ──────────────────────────────────────────────
-
-        // Normaliza string: minúsculo, sem acento, sem caracteres especiais
-        function normalizarNomeTime(nome) {
-            return nome
-                .toLowerCase()
+        // ── Utilitários para matching flexível de times ────────────
+        function normalizarTexto(str) {
+            // Remove acentos e converte para minúsculas
+            return str.toLowerCase()
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // remove acentos
-                .replace(/[^a-z0-9 ]/g, '')      // remove pontuação
-                .replace(/\s+/g, ' ')
+                .replace(/[\u0300-\u036f]/g, '')
                 .trim();
         }
 
-        // Dicionário de aliases → forma normalizada canônica
-        // A chave é o alias normalizado, o valor é como o nome do time ficará normalizado
-        const TEAM_ALIASES = {
-            // EUA / Estados Unidos
+        // Apelidos e grafias alternativas → nome normalizado do sistema
+        const ALIASES_TIMES = {
             'eua': 'estados unidos',
             'usa': 'estados unidos',
-            'estados unidos': 'estados unidos',
-
-            // Congo
-            'congo': 'republica democratica do congo',
-            'dr congo': 'republica democratica do congo',
-            'rd congo': 'republica democratica do congo',
-            'rep dem do congo': 'republica democratica do congo',
-            'rep democratica do congo': 'republica democratica do congo',
-            'republica do congo': 'republica democratica do congo',
-
-            // Bósnia
-            'bosnia': 'bosnia e herzegovina',
-            'bosnia herzegovina': 'bosnia e herzegovina',
-
-            // Suíça
-            'suica': 'suica',
-            'suissa': 'suica',
-
-            // Coreia
-            'coreia': 'coreia do sul',
-            'coreia sul': 'coreia do sul',
-            'sul coreia': 'coreia do sul',
-
-            // Costa do Marfim
-            'marfim': 'costa do marfim',
+            'estados unidos da america': 'estados unidos',
+            'congo': 'rd congo',
+            'republica democratica do congo': 'rd congo',
+            'rep congo': 'rd congo',
+            'rd do congo': 'rd congo',
+            'bosnia': 'bosnia',
+            'bosnia herzegovina': 'bosnia',
+            'bosnia-herzegovina': 'bosnia',
+            'suica': 'suica',   // sem acento já vira "suica" após normalizar
+            'marrocos': 'marrocos',
+            'costa do marfim': 'costa do marfim',
+            'costa marfim': 'costa do marfim',
             'ivory coast': 'costa do marfim',
-
-            // Outros nomes comuns
-            'holanda': 'paises baixos',
-            'netherlands': 'paises baixos',
-            'irlanda norte': 'irlanda do norte',
-            'north ireland': 'irlanda do norte',
-            'arabia': 'arabia saudita',
-            'saudi arabia': 'arabia saudita',
+            'coreia do sul': 'coreia do sul',
+            'coreia': 'coreia do sul',
+            'irlanda do norte': 'irlanda do norte',
             'nova zelandia': 'nova zelandia',
-            'new zealand': 'nova zelandia',
-            'africa do sul': 'africa do sul',
-            'south africa': 'africa do sul',
-            'cabo verde': 'cabo verde',
-            'cape verde': 'cabo verde',
         };
 
-        // Resolve o nome normalizado de um time (aplica aliases)
-        function resolverNomeNormalizado(nome) {
-            const norm = normalizarNomeTime(nome);
-            return TEAM_ALIASES[norm] ?? norm;
+        function resolverAliasTime(nomeNorm) {
+            return ALIASES_TIMES[nomeNorm] || nomeNorm;
         }
 
-        // Verifica se a linha contém o nome de um time (com suporte a aliases e normalização)
-        function linhaContemTime(linhaNorm, nomeTime) {
-            const nomeResolvido = resolverNomeNormalizado(nomeTime);
-            // Checa se a linha (já normalizada) contém o nome resolvido do time cadastrado
-            if (linhaNorm.includes(nomeResolvido)) return true;
-            // Checa também se qualquer alias que resolva para o mesmo nome canônico está na linha
-            // (útil quando o time cadastrado tem nome longo mas o alias é curto)
-            for (const [alias, canonico] of Object.entries(TEAM_ALIASES)) {
-                if (canonico === nomeResolvido && linhaNorm.includes(alias)) return true;
+        function timeCorresponde(nomeNorm, nomeCadastroNorm) {
+            const a = resolverAliasTime(nomeNorm);
+            const b = resolverAliasTime(nomeCadastroNorm);
+            // Match exato após normalização e alias
+            if (a === b) return true;
+            // Match por "contém" — aceita nomes parciais (ex: "congo" dentro de "rd congo")
+            if (b.includes(a) || a.includes(b)) return true;
+            return false;
+        }
+
+        function linhaContemTime(linhaNorm, nomeCadastro) {
+            const nomeCadNorm = normalizarTexto(nomeCadastro);
+            const nomeCadAlias = resolverAliasTime(nomeCadNorm);
+
+            // Checa se a linha contém o nome do cadastro (normalizado)
+            if (linhaNorm.includes(nomeCadNorm)) return true;
+            if (linhaNorm.includes(nomeCadAlias)) return true;
+
+            // Checa se algum alias aponta para esse time
+            for (const [alias, alvo] of Object.entries(ALIASES_TIMES)) {
+                if (alvo === nomeCadAlias || alvo === nomeCadNorm) {
+                    if (linhaNorm.includes(alias)) return true;
+                }
             }
             return false;
         }
@@ -2946,7 +2930,7 @@
             const lines = texto.split('\n');
             const palpitesMapeados = {};
             lines.forEach(linha => {
-                const linhaNorm = normalizarNomeTime(linha);
+                const linhaNorm = normalizarTexto(linha);
                 const numerosEncontrados = linhaNorm.match(/\d+/g);
                 if (numerosEncontrados && numerosEncontrados.length >= 2) {
                     jogosCopa.forEach(jogo => {
@@ -2973,7 +2957,7 @@
             const jogos = fasesKO[fase].jogos;
 
             lines.forEach(linha => {
-                const linhaNorm = normalizarNomeTime(linha);
+                const linhaNorm = normalizarTexto(linha);
                 const numeros = linhaNorm.match(/\d+/g);
                 if (numeros && numeros.length >= 2) {
                     jogos.forEach(jogo => {
