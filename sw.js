@@ -1,10 +1,10 @@
 const CACHE_NAME = 'bolao-copa-2026-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
 // Instala e cacheia os assets principais

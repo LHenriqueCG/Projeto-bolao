@@ -627,7 +627,7 @@
 
         .time-box.esquerdo {
             justify-content: flex-end;
-            flex-direction: row-reverse;
+            flex-direction: row;
             text-align: right;
         }
 
@@ -1409,6 +1409,11 @@
         /* A linha pública com data precisa de uma linha extra no grid */
         .jogo-linha-publico.jogo-clicavel {
             grid-template-columns: 1fr 80px 1fr 20px;
+            grid-template-rows: auto auto;
+        }
+
+        /* Mata-mata: também suporta linha de cidade/data */
+        .jogo-linha-publico:not(.jogo-clicavel) {
             grid-template-rows: auto auto;
         }
 
@@ -2781,8 +2786,8 @@
                 div.className = 'jogo-linha-admin';
                 div.innerHTML = `
                 <div class="time-box esquerdo">
-                    <span>${jogo.t1}</span>
                     <img class="flag-img" src="https://flagcdn.com/w40/${jogo.b1}.png" alt="${jogo.t1}">
+                    <span>${jogo.t1}</span>
                 </div>
                 <div class="placar-inputs">
                     <input type="number" min="0" id="real-g1-${jogo.id}" oninput="onInputResultado()">
@@ -2826,8 +2831,8 @@
                 div.innerHTML = `
                 ${dataHora}
                 <div class="time-box esquerdo">
-                    <span>${jogo.t1}</span>
                     <img class="flag-img" src="https://flagcdn.com/w40/${jogo.b1}.png" alt="${jogo.t1}">
+                    <span>${jogo.t1}</span>
                 </div>
                 <div class="placar-inputs">
                     <input type="number" id="pub-g1-${jogo.id}" disabled>
@@ -3472,6 +3477,8 @@
             const jogos = fasesKO[fase]?.jogos || [];
             const resultados = cacheResultadosKO[fase] || {};
 
+            let ultimaData = '';
+
             jogos.forEach(jogo => {
                 const tA = resolverTimeKO(jogo.fonteA);
                 const tB = resolverTimeKO(jogo.fonteB);
@@ -3488,12 +3495,27 @@
                 const g1 = r ? r.gols1 : '';
                 const g2 = r ? r.gols2 : '';
 
+                // Separador de data (apenas para 16avos que têm dataHora)
+                if (jogo.dataHora) {
+                    const dataLabel = jogo.dataHora.split(' · ')[0]; // ex: "28/06"
+                    if (dataLabel !== ultimaData) {
+                        ultimaData = dataLabel;
+                        const sep = document.createElement('div');
+                        sep.className = 'rodada-separador';
+                        sep.innerHTML = `<span>— ${jogo.dataHora.replace(' · ', ' ')} —</span>`;
+                        container.appendChild(sep);
+                    }
+                }
+
+                const cidadeHtml = jogo.cidade ? `<div class="jogo-data">📍 ${jogo.cidade}${jogo.dataHora ? ' · ' + jogo.dataHora : ''}</div>` : '';
+
                 const div = document.createElement('div');
                 div.className = 'jogo-linha-publico';
                 div.innerHTML = `
+                ${cidadeHtml}
                 <div class="time-box esquerdo">
-                    <span>${nomeA}</span>
                     ${flagA}
+                    <span>${nomeA}</span>
                 </div>
                 <div class="placar-inputs">
                     <input type="number" value="${g1}" disabled style="${r ? 'color:var(--amarelo);font-weight:800;' : ''}">
@@ -4118,24 +4140,29 @@
         // Chaveamento oficial FIFA 2026 — 16 confrontos
         // "melhor3" lista os grupos de onde o 3º pode vir para aquela vaga
         const chavamento16avos = [
-            // Confrontos 1º × 3º — adversário definido manualmente pelo admin
-            { id: "16a-01", labelA: "1º Grupo A", fonteA: { pos: 1, grupo: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-01" } },
-            { id: "16a-02", labelA: "1º Grupo B", fonteA: { pos: 1, grupo: "B" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-02" } },
-            { id: "16a-03", labelA: "1º Grupo D", fonteA: { pos: 1, grupo: "D" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-03" } },
-            { id: "16a-04", labelA: "1º Grupo E", fonteA: { pos: 1, grupo: "E" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-04" } },
-            { id: "16a-05", labelA: "1º Grupo G", fonteA: { pos: 1, grupo: "G" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-05" } },
-            { id: "16a-06", labelA: "1º Grupo I", fonteA: { pos: 1, grupo: "I" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-06" } },
-            { id: "16a-07", labelA: "1º Grupo K", fonteA: { pos: 1, grupo: "K" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-07" } },
-            { id: "16a-08", labelA: "1º Grupo L", fonteA: { pos: 1, grupo: "L" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-08" } },
-            // Confrontos entre 1os e 2os
-            { id: "16a-09", labelA: "1º Grupo C", fonteA: { pos: 1, grupo: "C" }, labelB: "2º Grupo F", fonteB: { pos: 2, grupo: "F" } },
-            { id: "16a-10", labelA: "1º Grupo H", fonteA: { pos: 1, grupo: "H" }, labelB: "2º Grupo J", fonteB: { pos: 2, grupo: "J" } },
-            { id: "16a-11", labelA: "2º Grupo A", fonteA: { pos: 2, grupo: "A" }, labelB: "2º Grupo B", fonteB: { pos: 2, grupo: "B" } },
-            { id: "16a-12", labelA: "2º Grupo C", fonteA: { pos: 2, grupo: "C" }, labelB: "1º Grupo F", fonteB: { pos: 1, grupo: "F" } },
-            { id: "16a-13", labelA: "2º Grupo D", fonteA: { pos: 2, grupo: "D" }, labelB: "2º Grupo G", fonteB: { pos: 2, grupo: "G" } },
-            { id: "16a-14", labelA: "2º Grupo E", fonteA: { pos: 2, grupo: "E" }, labelB: "2º Grupo I", fonteB: { pos: 2, grupo: "I" } },
-            { id: "16a-15", labelA: "2º Grupo H", fonteA: { pos: 2, grupo: "H" }, labelB: "1º Grupo J", fonteB: { pos: 1, grupo: "J" } },
-            { id: "16a-16", labelA: "2º Grupo K", fonteA: { pos: 2, grupo: "K" }, labelB: "2º Grupo L", fonteB: { pos: 2, grupo: "L" } },
+            // Ordenados por data/hora (horário de Brasília)
+            // 28/06 (domingo)
+            { id: "16a-11", labelA: "2º Grupo A", fonteA: { pos: 2, grupo: "A" }, labelB: "2º Grupo B", fonteB: { pos: 2, grupo: "B" }, dataHora: "28/06 · Dom · 16h00", cidade: "Los Angeles" },
+            // 29/06 (segunda)
+            { id: "16a-09", labelA: "1º Grupo C", fonteA: { pos: 1, grupo: "C" }, labelB: "2º Grupo F", fonteB: { pos: 2, grupo: "F" }, dataHora: "29/06 · Seg · 14h00", cidade: "Houston" },
+            { id: "16a-04", labelA: "1º Grupo E", fonteA: { pos: 1, grupo: "E" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-04" }, dataHora: "29/06 · Seg · 17h30", cidade: "Boston" },
+            { id: "16a-12", labelA: "2º Grupo C", fonteA: { pos: 2, grupo: "C" }, labelB: "1º Grupo F", fonteB: { pos: 1, grupo: "F" }, dataHora: "29/06 · Seg · 22h00", cidade: "Monterrey" },
+            // 30/06 (terça)
+            { id: "16a-14", labelA: "2º Grupo E", fonteA: { pos: 2, grupo: "E" }, labelB: "2º Grupo I", fonteB: { pos: 2, grupo: "I" }, dataHora: "30/06 · Ter · 14h00", cidade: "Dallas" },
+            { id: "16a-06", labelA: "1º Grupo I", fonteA: { pos: 1, grupo: "I" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-06" }, dataHora: "30/06 · Ter · 18h00", cidade: "Nova Jersey" },
+            { id: "16a-01", labelA: "1º Grupo A", fonteA: { pos: 1, grupo: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-01" }, dataHora: "30/06 · Ter · 22h00", cidade: "Azteca" },
+            // 01/07 (quarta)
+            { id: "16a-08", labelA: "1º Grupo L", fonteA: { pos: 1, grupo: "L" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-08" }, dataHora: "01/07 · Qua · 13h00", cidade: "Atlanta" },
+            { id: "16a-05", labelA: "1º Grupo G", fonteA: { pos: 1, grupo: "G" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-05" }, dataHora: "01/07 · Qua · 17h00", cidade: "Seattle" },
+            { id: "16a-03", labelA: "1º Grupo D", fonteA: { pos: 1, grupo: "D" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-03" }, dataHora: "01/07 · Qua · 21h00", cidade: "Santa Clara" },
+            // 02/07 (quinta)
+            { id: "16a-10", labelA: "1º Grupo H", fonteA: { pos: 1, grupo: "H" }, labelB: "2º Grupo J", fonteB: { pos: 2, grupo: "J" }, dataHora: "02/07 · Qui · 16h00", cidade: "Los Angeles" },
+            { id: "16a-16", labelA: "2º Grupo K", fonteA: { pos: 2, grupo: "K" }, labelB: "2º Grupo L", fonteB: { pos: 2, grupo: "L" }, dataHora: "02/07 · Qui · 20h00", cidade: "Toronto" },
+            // 03/07 (sexta)
+            { id: "16a-02", labelA: "1º Grupo B", fonteA: { pos: 1, grupo: "B" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-02" }, dataHora: "03/07 · Sex · 00h00", cidade: "Vancouver" },
+            { id: "16a-13", labelA: "2º Grupo D", fonteA: { pos: 2, grupo: "D" }, labelB: "2º Grupo G", fonteB: { pos: 2, grupo: "G" }, dataHora: "03/07 · Sex · 15h00", cidade: "Dallas" },
+            { id: "16a-15", labelA: "2º Grupo H", fonteA: { pos: 2, grupo: "H" }, labelB: "1º Grupo J", fonteB: { pos: 1, grupo: "J" }, dataHora: "03/07 · Sex · 19h00", cidade: "Miami" },
+            { id: "16a-07", labelA: "1º Grupo K", fonteA: { pos: 1, grupo: "K" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-07" }, dataHora: "03/07 · Sex · 22h30", cidade: "Kansas City" },
         ];
 
         // Cache das atribuições manuais dos 3ºs colocados nos 16avos
@@ -4308,7 +4335,7 @@
         // Para fases seguintes usa o vencedor do jogo anterior (ainda não implementável
         // sem os resultados do mata-mata, então mostra label).
         function resolverTimeKO(fonte) {
-            if (fonte.melhor3 || fonte.pos) return resolverTime(fonte); // 16avos
+            if (fonte.melhor3 || fonte.pos || fonte.manual3) return resolverTime(fonte); // 16avos
             if (fonte.ko) {
                 const res = cacheResultadosKO[fonte.ko];
                 if (!res) return null;
@@ -4399,7 +4426,13 @@
                 const v1 = p ? p.gols1 : '';
                 const v2 = p ? p.gols2 : '';
                 const label3 = jogo.terceiro ? '<span style="font-size:9px;color:var(--text-dim);"> · 3º Lugar</span>' : '';
-                return `<div class="ko-jogo-linha ${bloqueado ? 'ko-bloqueado' : ''}">
+                const metaInfo = (jogo.dataHora || jogo.cidade)
+                    ? `<div style="grid-column:1/-1;font-size:9px;color:var(--text-dim);text-align:center;padding-bottom:2px;letter-spacing:0.5px;">
+                        ${jogo.dataHora ? `🗓 ${jogo.dataHora}` : ''}${jogo.cidade ? ` &nbsp;·&nbsp; 📍 ${jogo.cidade}` : ''}
+                       </div>`
+                    : '';
+                return `<div class="ko-jogo-linha ${bloqueado ? 'ko-bloqueado' : ''}" style="flex-wrap:wrap;">
+                    ${metaInfo}
                     <div class="time-box esquerdo" style="flex:1;min-width:0;">
                         <span style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nomeA}</span>
                         ${flagA}
@@ -4801,7 +4834,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
+                navigator.serviceWorker.register('./sw.js').catch(() => {})
+                .then(reg => console.log('Service Worker registrado com sucesso!', reg))
+      .catch(err => console.error('Erro ao registrar o Service Worker:', err));
             });
         }
     </script>
