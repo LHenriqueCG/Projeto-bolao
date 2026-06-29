@@ -2203,63 +2203,7 @@
                          <div id="faseAtualStatus" style="margin-top:12px;font-size:12px;color:var(--text-dim);text-align:center;"></div>
                      </div>
 
-                     <!-- ══ LANÇAR RESULTADOS ══ -->
-                     <div class="card" style="margin-bottom:16px;">
-                         <div style="display:block;width:100%;">
-                             <h2 style="display:inline-block;margin:0;font-size:16px;">⚽ 2. Lançar Resultados</h2>
-                             <button onclick="zerarApenasResultadosReais()" class="btn-clear-results">🗑️ Limpar
-                                 Todos</button>
-                         </div>
-                         <p style="font-size:12px;color:#64748b;margin-top:5px;margin-bottom:10px;">Preencha os placares.
-                             Use o botão 🧹 para limpar um jogo isolado.</p>
-                         <div id="listaJogosPainel" class="jogos-container"></div>
-                         <button onclick="salvarEAtualizarRanking()" class="btn-calc">🔄 Salvar e Atualizar
-                             Ranking</button>
-                     </div>
-                     
-                      <!-- ══ DESEMPATE MANUAL DE GRUPOS ══ -->
-                      <div class="card" style="margin-bottom:16px;">
-                          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                              <h2 style="margin:0; font-size:16px;">⚖️ Desempate Manual de Grupos</h2>
-                              <button onclick="salvarDesempates()" style="background:var(--verde); color:white; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:700;">💾 Salvar Desempates</button>
-                          </div>
-                          <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Se times empatarem em Pts, SG e GP, a ordem definida aqui prevalecerá.</p>
-                          <div id="desempateContainer"></div>
-                      </div>
-
-                      <!-- ══ ATRIBUIÇÃO DOS 3ºs NOS 16AVOS ══ -->
-
-                     <div class="card" style="margin-bottom:16px;">
-                         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                             <h2 style="margin:0; font-size:16px;">🏅 3. Atribuir Melhores Terceiros</h2>
-                             <button onclick="salvarManual3()" style="background:var(--verde); color:white; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:700;">💾 Salvar Atribuições</button>
-                         </div>
-                         <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Defina qual 3º colocado de cada grupo ocupará as vagas nos 16avos de final.</p>
-                         <div id="manual3Container"></div>
-                     </div>
- 
-                     <!-- ══ SINCRONIZAÇÃO API ══ -->
-                     <div class="card" style="margin-bottom:16px;" id="cardApiSync">
-                         <h2 style="font-size:16px;margin-bottom:6px;">🤖 Sincronização Automática</h2>
-                         <p style="font-size:12px;color:#64748b;margin-bottom:12px;">O Worker no Cloudflare atualiza os resultados automaticamente a cada 15 minutos. Use o botão abaixo para forçar uma atualização imediata.</p>
-                         <button onclick="forceSyncAgora()" style="width:100%;padding:10px;font-size:13px;background:rgba(255,255,255,0.08);color:var(--text);border:1px solid var(--card-brd);border-radius:8px;cursor:pointer;font-weight:700;">🔄 Forçar Sync Agora</button>
-                         <div id="syncStatus" style="margin-top:10px;font-size:12px;color:var(--text-dim);min-height:18px;"></div>
-                         <div id="syncLog" style="margin-top:6px;font-size:11px;color:#64748b;max-height:100px;overflow-y:auto;line-height:1.6;"></div>
-                     </div>
-
-                     <div class="card" style="margin-bottom: 30px;">
-                         <h3>👥 Status dos Participantes</h3>
-
-                        <div id="listaChips" class="list-players"></div>
-                        <div id="inspectorContainer" class="db-inspector"></div>
-                        <button onclick="zerarBancoDeDados()" class="btn-danger">⚠️ Zerar Tudo (Reset Total do
-                            Bolão)</button>
-                    </div>
-                </div>
-            </div>
-        </div><!-- /inner-pad -->
-    </div><!-- /container -->
-
+                 
     <!-- =====================================================
      FIREBASE SDK (módulos ES)
      ===================================================== -->
