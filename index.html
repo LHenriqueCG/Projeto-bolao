@@ -3560,7 +3560,7 @@
 
                 // Separador de data (apenas para 16avos que têm dataHora)
                 if (jogo.dataHora) {
-                    const dataLabel = jogo.dataHora.split(' · ')[0];
+                    const dataLabel = jogo.dataHora.split(' · ')[0]; // ex: "28/06"
                     if (dataLabel !== ultimaData) {
                         ultimaData = dataLabel;
                         const sep = document.createElement('div');
@@ -3573,9 +3573,7 @@
                 const cidadeHtml = jogo.cidade ? `<div class="jogo-data">📍 ${jogo.cidade}${jogo.dataHora ? ' · ' + jogo.dataHora : ''}</div>` : '';
 
                 const div = document.createElement('div');
-                div.className = 'jogo-linha-publico jogo-clicavel';
-                div.title = 'Ver palpites deste confronto';
-                div.setAttribute('onclick', `abrirExplorerKOPublico('${jogo.id}','${fase}')`);
+                div.className = 'jogo-linha-publico';
                 div.innerHTML = `
                 ${cidadeHtml}
                 <div class="time-box esquerdo">
@@ -3591,117 +3589,11 @@
                     ${flagB}
                     <span>${nomeB}</span>
                 </div>
-                <div class="jogo-clicavel-hint">👥</div>
                 `;
                 container.appendChild(div);
             });
         }
         window.renderizarPlacaresKOPublico = renderizarPlacaresKOPublico;
-
-        // Abre o explorador de palpites KO no card da aba Ranking (mesmo painel dos grupos)
-        function abrirExplorerKOPublico(idJogo, fase) {
-            const jogos = fasesKO[fase]?.jogos || [];
-            const jogo = jogos.find(j => j.id === idJogo);
-            if (!jogo) return;
-
-            const tA = resolverTimeKO(jogo.fonteA);
-            const tB = resolverTimeKO(jogo.fonteB);
-            const nA = tA ? tA.nome : jogo.labelA;
-            const nB = tB ? tB.nome : jogo.labelB;
-            const codA = tA?.cod;
-            const codB = tB?.cod;
-            const real = (cacheResultadosKO[fase] || {})[idJogo];
-
-            const flagA = codA ? `<img src="https://flagcdn.com/w40/${codA}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">` : '';
-            const flagB = codB ? `<img src="https://flagcdn.com/w40/${codB}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">` : '';
-
-            const titulo = `🔍 ${flagA} ${nA} <span style="color:var(--text-dim);">×</span> ${nB} ${flagB}`;
-
-            const placarOficialHtml = real
-                ? `<div class="explorer-placar-oficial">
-                    <span style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);">Resultado Oficial</span>
-                    <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:var(--amarelo);line-height:1;text-shadow:0 0 20px rgba(255,223,0,0.3);">
-                        ${real.gols1} <span style="color:var(--text-dim);font-size:28px;">×</span> ${real.gols2}
-                    </div>
-                   </div>`
-                : `<div class="explorer-placar-oficial" style="opacity:0.6;">
-                    <span style="font-size:12px;color:var(--text-dim);">⏳ Aguardando resultado</span>
-                   </div>`;
-
-            const comPalpite = integrantes.filter(n => cachePalpitesKO[`${n}_${fase}`]?.[idJogo]);
-            let qtdCheio = 0, qtdParcial = 0, qtdErro = 0;
-
-            function classificarKO(p, r) {
-                if (!r || !p) return 'pendente';
-                if (p.gols1 === r.gols1 && p.gols2 === r.gols2) return 'cheio';
-                if (p.vencedor === r.vencedor) return 'parcial';
-                return 'erro';
-            }
-
-            comPalpite.forEach(n => {
-                const tipo = classificarKO(cachePalpitesKO[`${n}_${fase}`][idJogo], real);
-                if (tipo === 'cheio') qtdCheio++;
-                if (tipo === 'parcial') qtdParcial++;
-                if (tipo === 'erro') qtdErro++;
-            });
-
-            const statsHtml = real && comPalpite.length ? `
-            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
-                <div class="jogo-stat-pill pill-ouro">⭐ ${qtdCheio} exato${qtdCheio !== 1 ? 's' : ''}</div>
-                <div class="jogo-stat-pill pill-verde">✔ ${qtdParcial} venc. certo</div>
-                <div class="jogo-stat-pill pill-erro">✗ ${qtdErro} erro${qtdErro !== 1 ? 's' : ''}</div>
-            </div>` : '';
-
-            const ordem = { cheio: 0, parcial: 1, erro: 2, pendente: 3 };
-            const lista = comPalpite
-                .map(nome => {
-                    const p = cachePalpitesKO[`${nome}_${fase}`][idJogo];
-                    return { nome, p, tipo: classificarKO(p, real) };
-                })
-                .sort((a, b) => ordem[a.tipo] - ordem[b.tipo]);
-
-            let cards = lista.map(({ nome, p, tipo }) =>
-                `<div class="${cardClass(tipo)}" onclick="abrirExplorerPorIntegrante('${nome}')" style="cursor:pointer;" title="Ver todos os palpites de ${nome}">
-                    <div class="palpite-nome">${nome}</div>
-                    <div class="palpite-placar">${p.gols1}<span style="color:var(--text-dim);font-size:18px;">×</span>${p.gols2}</div>
-                    ${badgeHtml(tipo)}
-                </div>`).join('');
-
-            if (!cards) cards = '<div class="explorer-empty">😶 Nenhum palpite KO cadastrado para este jogo ainda.</div>';
-
-            const semPalpite = integrantes.filter(n => !cachePalpitesKO[`${n}_${fase}`]?.[idJogo]);
-            const semHtml = semPalpite.length
-                ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-                    <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Ainda sem palpite (${semPalpite.length}):</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        ${semPalpite.map(n => `<span style="font-size:11px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:10px;color:var(--text-dim);">${n}</span>`).join('')}
-                    </div></div>` : '';
-
-            const html = placarOficialHtml + statsHtml + `<div class="palpites-grid">${cards}</div>` + semHtml;
-            const dica = comPalpite.length ? 'Clique num nome para ver o perfil completo' : '';
-
-            // Navegação entre jogos da mesma fase
-            const botoesEl = document.getElementById('explorerBotoesJogo');
-            botoesEl.innerHTML = '';
-            jogos.forEach(j => {
-                const tJA = resolverTimeKO(j.fonteA);
-                const tJB = resolverTimeKO(j.fonteB);
-                const lA = tJA ? tJA.nome : j.labelA;
-                const lB = tJB ? tJB.nome : j.labelB;
-                const btn = document.createElement('button');
-                btn.style.cssText = `width:auto;padding:5px 10px;font-size:10px;border-radius:6px;
-                    background:${j.id === idJogo ? 'var(--amarelo)' : 'rgba(255,255,255,0.07)'};
-                    color:${j.id === idJogo ? 'var(--verde-esc)' : 'var(--text-dim)'};
-                    border:1px solid ${j.id === idJogo ? 'var(--amarelo)' : 'var(--border)'};
-                    font-weight:700;`;
-                btn.textContent = `${lA} × ${lB}`;
-                if (j.id !== idJogo) btn.onclick = () => abrirExplorerKOPublico(j.id, fase);
-                botoesEl.appendChild(btn);
-            });
-
-            mostrarExplorer(titulo, dica, html, 'jogo');
-        }
-        window.abrirExplorerKOPublico = abrirExplorerKOPublico;
 
         // ══ SINCRONIZAÇÃO VIA CLOUDFLARE WORKER ══════════════════
 
@@ -3720,22 +3612,42 @@
         }
 
         async function forceSyncAgora() {
-            setSyncStatus('⏳ Forçando sincronização...');
+            setSyncStatus('⏳ Sincronizando grupos e mata-mata...');
             try {
                 const r = await fetch(WORKER_URL);
                 const d = await r.json();
                 (d.log || []).forEach(l => logSync(l));
+
                 if (d.atualizados > 0) {
-                    // Recarrega resultados do Firebase
-                    const novos = await window.fb_carregarResultados();
-                    if (novos) {
-                        cacheResultados = novos;
+                    // Recarrega resultados de grupos
+                    const novosGrupos = await window.fb_carregarResultados();
+                    if (novosGrupos) {
+                        cacheResultados = novosGrupos;
                         sincronizarEspelhoPublico(cacheResultados);
                         preencherInputsResultados(cacheResultados);
-                        calcularResultados();
-                        atualizarFasePublica();
                     }
-                    setSyncStatus(`✅ ${d.atualizados} resultado(s) atualizados — ${new Date().toLocaleTimeString('pt-BR')}`);
+
+                    // Recarrega resultados KO de todas as fases
+                    const fasesKOOrdem = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
+                    await Promise.all(fasesKOOrdem.map(async f => {
+                        const novo = await window.fb_carregarResultadosKO(f);
+                        if (JSON.stringify(novo) !== JSON.stringify(cacheResultadosKO[f])) {
+                            cacheResultadosKO[f] = novo;
+                        }
+                    }));
+
+                    // Atualiza ranking, fase pública e mata-mata se visível
+                    calcularResultados();
+                    atualizarFasePublica();
+                    if (document.getElementById('abaMataMata').classList.contains('active')) {
+                        renderizarMataMata();
+                    }
+                    renderKOJogos();
+
+                    const partes = [];
+                    if (d.atGrupos > 0) partes.push(`${d.atGrupos} grupo(s)`);
+                    if (d.atKO > 0) partes.push(`${d.atKO} mata-mata`);
+                    setSyncStatus(`✅ ${partes.join(' · ')} atualizados — ${new Date().toLocaleTimeString('pt-BR')}`);
                 } else {
                     setSyncStatus(`ℹ️ Tudo atualizado — ${new Date().toLocaleTimeString('pt-BR')}`);
                 }
