@@ -1051,6 +1051,184 @@
             color: #ef9a9a;
         }
 
+        /* ══ ESTATÍSTICAS — EVOLUÇÃO DO RANKING ═════════════ */
+        #evolucaoChartContainer {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        #evolucaoChartContainer svg {
+            width: 100%;
+            min-width: 480px;
+            height: auto;
+            display: block;
+        }
+
+        .evo-legenda {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .evo-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 10px 4px 6px;
+            font-size: 11px;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s;
+        }
+
+        .evo-chip:hover {
+            border-color: var(--amarelo);
+        }
+
+        .evo-chip.evo-off {
+            opacity: 0.3;
+        }
+
+        .evo-chip .evo-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .evo-chip .evo-pts {
+            color: var(--text-dim);
+            font-weight: 700;
+        }
+
+        .evo-vazio {
+            font-size: 12px;
+            color: var(--text-dim);
+            padding: 10px 0;
+        }
+
+        /* ══ JOGO DA RODADA ══════════════════════════════════ */
+        .jogo-destaque {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .jogo-destaque.destaque-top {
+            border-color: rgba(255, 223, 0, 0.4);
+            background: rgba(255, 223, 0, 0.05);
+        }
+
+        .jogo-destaque.destaque-low {
+            border-color: rgba(229, 57, 53, 0.35);
+            background: rgba(229, 57, 53, 0.05);
+        }
+
+        .jogo-destaque-tag {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .destaque-top .jogo-destaque-tag {
+            color: var(--amarelo);
+        }
+
+        .destaque-low .jogo-destaque-tag {
+            color: #ef9a9a;
+        }
+
+        .jogo-destaque-placar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+
+        .jogo-destaque-placar img {
+            width: 20px;
+            height: 14px;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        .jogo-destaque-fase {
+            text-align: center;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .jogo-destaque-stats {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* ══ PERFIL DE APOSTADOR ═════════════════════════════ */
+        .perfil-linha {
+            display: grid;
+            grid-template-columns: 20px minmax(0, 1fr) 42px;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+        }
+
+        .perfil-nome {
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .perfil-bar-wrap {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            height: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .perfil-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--azul-med), var(--danger));
+            transition: width 0.6s ease;
+        }
+
+        .perfil-media {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--amarelo);
+            text-align: right;
+        }
+
+        .perfil-pos {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
         /* lista de palpites por integrante */
         .palpite-linha {
             display: grid;
@@ -1902,6 +2080,7 @@
             <button id="btnAbaPublico" class="tab-btn active" onclick="mudarAba('publico')">📊 Ranking</button>
             <button id="btnAbaGrupos" class="tab-btn" onclick="mudarAba('grupos')">🏟️ Grupos</button>
             <button id="btnAbaMataMata" class="tab-btn" onclick="mudarAba('matamata')">⚔️ <span id="labelAbaMataMata">16avos</span></button>
+            <button id="btnAbaStats" class="tab-btn" onclick="mudarAba('stats')">📈 Estatísticas</button>
             <button id="btnAbaAdmin" class="tab-btn" onclick="mudarAba('admin')">⚙️ Admin</button>
         </div>
 
@@ -1980,6 +2159,26 @@
 
             <div id="abaMataMata" class="aba-conteudo">
                 <div id="mataMataConteudo" class="inner-pad"></div>
+            </div>
+
+            <div id="abaStats" class="aba-conteudo">
+                <div class="card" style="margin-bottom:16px;">
+                    <h2>📈 Evolução do Ranking</h2>
+                    <div id="evolucaoChartContainer"></div>
+                    <div id="evolucaoLegenda" class="evo-legenda"></div>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h2>🔥 Jogo da Rodada</h2>
+                        <div id="jogoRodadaContainer"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2>⚽ Perfil de Apostador</h2>
+                        <div id="perfilApostadorContainer"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="abaAdmin" class="aba-conteudo">
@@ -2708,12 +2907,13 @@
         function mudarAba(aba) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.aba-conteudo').forEach(c => c.classList.remove('active'));
-            const btnMap = { publico: 'btnAbaPublico', grupos: 'btnAbaGrupos', matamata: 'btnAbaMataMata', admin: 'btnAbaAdmin' };
-            const abaMap = { publico: 'abaPublico', grupos: 'abaGrupos', matamata: 'abaMataMata', admin: 'abaAdmin' };
+            const btnMap = { publico: 'btnAbaPublico', grupos: 'btnAbaGrupos', matamata: 'btnAbaMataMata', stats: 'btnAbaStats', admin: 'btnAbaAdmin' };
+            const abaMap = { publico: 'abaPublico', grupos: 'abaGrupos', matamata: 'abaMataMata', stats: 'abaStats', admin: 'abaAdmin' };
             document.getElementById(btnMap[aba]).classList.add('active');
             document.getElementById(abaMap[aba]).classList.add('active');
             if (aba === 'grupos') renderizarGrupos();
             if (aba === 'matamata') renderizarMataMata();
+            if (aba === 'stats') renderizarEstatisticas();
             if (aba === 'admin') {
                 renderManual3Panel();
                 renderDesempatePanel();
@@ -3408,6 +3608,10 @@
             `;
                 tbody.appendChild(tr);
             });
+
+            if (document.getElementById('abaStats')?.classList.contains('active')) {
+                renderizarEstatisticas();
+            }
         }
         window.calcularResultados = calcularResultados;
 
@@ -5099,7 +5303,8 @@
         async function salvarResultadosKOFase() {
             const fase = koFaseAtiva;
             const jogos = fasesKO[fase].jogos;
-            const dados = cacheResultadosKO[fase] ? { ...cacheResultadosKO[fase] } : {};
+            const anteriores = cacheResultadosKO[fase] ? { ...cacheResultadosKO[fase] } : {};
+            const dados = { ...anteriores };
             let salvos = 0;
 
             try {
@@ -5156,10 +5361,15 @@
                         }
                     }
 
-                    dados[jogo.id] = { gols1: g1, gols2: g2, vencedor };
-                    if (pror1 !== null) { dados[jogo.id].pror1 = pror1; dados[jogo.id].pror2 = pror2; }
-                    if (pen1 !== null) { dados[jogo.id].pen1 = pen1; dados[jogo.id].pen2 = pen2; }
-                    salvos++;
+                    const novoResultado = { gols1: g1, gols2: g2, vencedor };
+                    if (pror1 !== null) { novoResultado.pror1 = pror1; novoResultado.pror2 = pror2; }
+                    if (pen1 !== null) { novoResultado.pen1 = pen1; novoResultado.pen2 = pen2; }
+
+                    const anterior = anteriores[jogo.id];
+                    const mudou = !anterior || JSON.stringify(anterior) !== JSON.stringify(novoResultado);
+
+                    dados[jogo.id] = novoResultado;
+                    if (mudou) salvos++;
                 });
             } catch (e) {
                 return; // interrompe o salvamento; o alerta já foi exibido
@@ -5171,7 +5381,11 @@
                 atualizarBotoesFaseKO();
                 renderKOJogos(); // re-render to update locked state
                 atualizarFasePublica(); // atualiza aba e card público
-                alert(`✅ ${salvos} resultado(s) de ${fasesKO[fase].label} salvos!`);
+                if (salvos === 0) {
+                    alert(`Nenhum resultado novo para salvar em ${fasesKO[fase].label} (sem alterações).`);
+                } else {
+                    alert(`✅ ${salvos} resultado(s) de ${fasesKO[fase].label} salvos!`);
+                }
             }
         }
         window.salvarResultadosKOFase = salvarResultadosKOFase;
@@ -5353,14 +5567,392 @@
             salvarManual3();
         }
         window.limparManual3Individual = limparManual3Individual;
+
+        // ══════════════════════════════════════════════════════════
+        // ══ ESTATÍSTICAS ════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════
+
+        const EVO_FASES_ORDEM = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
+        const EVO_FASES_LABEL = { '16avos': '16avos', oitavas: 'Oitavas', quartas: 'Quartas', semis: 'Semis', final: 'Final' };
+
+        // Cores estáveis por integrante (mesma ordem do array `integrantes`)
+        function corIntegrante(nome) {
+            const idx = integrantes.indexOf(nome);
+            const hue = Math.round((idx * 360) / Math.max(integrantes.length, 1));
+            return `hsl(${hue}, 70%, 60%)`;
+        }
+
+        // ── 1) Evolução do Ranking ──────────────────────────────────
+        function calcularEvolucaoRanking() {
+            const rounds = [];
+
+            for (let r = 1; r <= 3; r++) {
+                const jogosRodada = jogosCopa.filter(j => j.rodada === r);
+                const temResultado = jogosRodada.some(j => cacheResultados[j.id]);
+                if (temResultado) rounds.push({ label: `Rod. ${r}`, tipo: 'grupo', rodada: r });
+            }
+
+            EVO_FASES_ORDEM.forEach(fase => {
+                const res = cacheResultadosKO[fase];
+                if (res && Object.keys(res).length > 0) {
+                    rounds.push({ label: EVO_FASES_LABEL[fase], tipo: 'ko', fase });
+                }
+            });
+
+            const series = {};
+            integrantes.forEach(nome => { series[nome] = []; });
+
+            rounds.forEach((round, idx) => {
+                integrantes.forEach(nome => {
+                    let pts = idx === 0 ? 0 : series[nome][idx - 1];
+
+                    if (round.tipo === 'grupo') {
+                        jogosCopa.filter(j => j.rodada === round.rodada).forEach(j => {
+                            const real = cacheResultados[j.id];
+                            if (!real) return;
+                            const palpite = cachePalpites[nome]?.[j.id];
+                            if (!palpite) return;
+                            if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) pts += 3;
+                            else if (real.vencedor === palpite.vencedor) pts += 1;
+                        });
+                    } else {
+                        const res = cacheResultadosKO[round.fase] || {};
+                        const palpitesKO = cachePalpitesKO[`${nome}_${round.fase}`];
+                        for (let idJogo in res) {
+                            const real = res[idJogo];
+                            const palpite = palpitesKO?.[idJogo];
+                            if (!palpite) continue;
+                            const pg1 = Number(palpite.gols1), pg2 = Number(palpite.gols2);
+                            const rg1 = Number(real.gols1), rg2 = Number(real.gols2);
+                            if (rg1 === pg1 && rg2 === pg2) pts += 3;
+                            else {
+                                const vp = pg1 > pg2 ? 1 : (pg2 > pg1 ? 2 : 0);
+                                const vr = rg1 > rg2 ? 1 : (rg2 > rg1 ? 2 : 0);
+                                if (vr === vp) pts += 1;
+                            }
+                        }
+                    }
+
+                    series[nome][idx] = pts;
+                });
+            });
+
+            return { rounds, series };
+        }
+
+        function renderEvolucaoChart() {
+            const container = document.getElementById('evolucaoChartContainer');
+            const legendaEl = document.getElementById('evolucaoLegenda');
+            if (!container || !legendaEl) return;
+
+            const { rounds, series } = calcularEvolucaoRanking();
+
+            if (rounds.length === 0) {
+                container.innerHTML = '<div class="evo-vazio">⏳ Aguardando os primeiros resultados para traçar a evolução do ranking.</div>';
+                legendaEl.innerHTML = '';
+                return;
+            }
+
+            const W = 760, H = 300;
+            const padL = 32, padR = 14, padT = 16, padB = rounds.length > 1 ? 34 : 24;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+
+            let maxPts = 1;
+            integrantes.forEach(nome => {
+                series[nome].forEach(v => { if (v > maxPts) maxPts = v; });
+            });
+            // arredonda o teto pra cima num múltiplo "bonito"
+            const passo = maxPts <= 10 ? 2 : (maxPts <= 30 ? 5 : (maxPts <= 60 ? 10 : 20));
+            const tetoY = Math.ceil(maxPts / passo) * passo || passo;
+
+            const xFor = i => rounds.length > 1 ? padL + (i * plotW) / (rounds.length - 1) : padL + plotW / 2;
+            const yFor = v => padT + plotH - (v / tetoY) * plotH;
+
+            // grade horizontal
+            let gridSvg = '';
+            const nLinhas = 4;
+            for (let g = 0; g <= nLinhas; g++) {
+                const val = Math.round((tetoY / nLinhas) * g);
+                const y = yFor(val);
+                gridSvg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>`;
+                gridSvg += `<text x="${padL - 6}" y="${y + 3}" font-size="9" fill="var(--text-dim)" text-anchor="end">${val}</text>`;
+            }
+
+            // eixo X — labels das rodadas/fases
+            let xLabelsSvg = '';
+            rounds.forEach((round, i) => {
+                const x = xFor(i);
+                xLabelsSvg += `<text x="${x}" y="${H - padB + 16}" font-size="9" fill="var(--text-dim)" text-anchor="middle">${round.label}</text>`;
+                xLabelsSvg += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H - padB}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+            });
+
+            // ranking final pra ordenar a legenda
+            const finais = integrantes.map(nome => ({
+                nome,
+                pts: series[nome][series[nome].length - 1] || 0
+            })).sort((a, b) => b.pts - a.pts);
+
+            let linhasSvg = '';
+            integrantes.forEach(nome => {
+                const cor = corIntegrante(nome);
+                const pontos = series[nome].map((v, i) => `${xFor(i)},${yFor(v)}`).join(' ');
+                const circles = series[nome].map((v, i) => `<circle cx="${xFor(i)}" cy="${yFor(v)}" r="2.5" fill="${cor}"/>`).join('');
+                linhasSvg += `<g class="evo-line" data-nome="${nome}">
+                    <polyline points="${pontos}" fill="none" stroke="${cor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+                    ${circles}
+                </g>`;
+            });
+
+            container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+                ${gridSvg}
+                ${xLabelsSvg}
+                ${linhasSvg}
+            </svg>`;
+
+            legendaEl.innerHTML = finais.map(f => `
+                <span class="evo-chip" data-nome="${f.nome}" onclick="toggleEvoLinha('${f.nome}')">
+                    <span class="evo-dot" style="background:${corIntegrante(f.nome)}"></span>
+                    ${f.nome} <span class="evo-pts">${f.pts}</span>
+                </span>
+            `).join('');
+        }
+
+        function toggleEvoLinha(nome) {
+            const grupo = document.querySelector(`.evo-line[data-nome="${CSS.escape(nome)}"]`);
+            const chip = document.querySelector(`.evo-chip[data-nome="${CSS.escape(nome)}"]`);
+            if (grupo) grupo.classList.toggle('evo-off');
+            if (chip) chip.classList.toggle('evo-off');
+            if (grupo) grupo.style.display = grupo.classList.contains('evo-off') ? 'none' : '';
+        }
+        window.toggleEvoLinha = toggleEvoLinha;
+
+        // ── 2) Jogo da Rodada (mais e menos acertado) ───────────────
+        function calcularEstatisticasJogos() {
+            const lista = [];
+
+            jogosCopa.forEach(j => {
+                const real = cacheResultados[j.id];
+                if (!real) return;
+                let comPalpite = 0, acertos = 0, exatos = 0;
+                integrantes.forEach(nome => {
+                    const p = cachePalpites[nome]?.[j.id];
+                    if (!p) return;
+                    comPalpite++;
+                    if (real.gols1 === p.gols1 && real.gols2 === p.gols2) { exatos++; acertos++; }
+                    else if (real.vencedor === p.vencedor) acertos++;
+                });
+                if (comPalpite === 0) return;
+                lista.push({
+                    flagA: j.b1, flagB: j.b2, nomeA: j.t1, nomeB: j.t2,
+                    fase: '🏟️ Fase de Grupos', placarA: real.gols1, placarB: real.gols2,
+                    comPalpite, acertos, exatos, pct: acertos / comPalpite
+                });
+            });
+
+            EVO_FASES_ORDEM.forEach(fase => {
+                const res = cacheResultadosKO[fase] || {};
+                const jogos = fasesKO[fase]?.jogos || [];
+                jogos.forEach(jogo => {
+                    const real = res[jogo.id];
+                    if (!real) return;
+                    const tA = resolverTimeKO(jogo.fonteA);
+                    const tB = resolverTimeKO(jogo.fonteB);
+                    if (!tA || !tB) return;
+                    let comPalpite = 0, acertos = 0, exatos = 0;
+                    integrantes.forEach(nome => {
+                        const p = cachePalpitesKO[`${nome}_${fase}`]?.[jogo.id];
+                        if (!p) return;
+                        comPalpite++;
+                        const pg1 = Number(p.gols1), pg2 = Number(p.gols2);
+                        const rg1 = Number(real.gols1), rg2 = Number(real.gols2);
+                        if (rg1 === pg1 && rg2 === pg2) { exatos++; acertos++; }
+                        else {
+                            const vp = pg1 > pg2 ? 1 : (pg2 > pg1 ? 2 : 0);
+                            const vr = rg1 > rg2 ? 1 : (rg2 > rg1 ? 2 : 0);
+                            if (vr === vp) acertos++;
+                        }
+                    });
+                    if (comPalpite === 0) return;
+                    lista.push({
+                        flagA: tA.cod, flagB: tB.cod, nomeA: tA.nome, nomeB: tB.nome,
+                        fase: nomeFases[fase] || fase, placarA: real.gols1, placarB: real.gols2,
+                        comPalpite, acertos, exatos, pct: acertos / comPalpite
+                    });
+                });
+            });
+
+            return lista;
+        }
+
+        function renderDestaqueJogo(jogo, tipo) {
+            if (!jogo) return '';
+            const cls = tipo === 'top' ? 'destaque-top' : 'destaque-low';
+            const tag = tipo === 'top' ? '🎯 Mais acertado por todos' : '😵 Mais difícil de acertar';
+            const flagA = jogo.flagA ? `<img src="https://flagcdn.com/w40/${jogo.flagA}.png">` : '';
+            const flagB = jogo.flagB ? `<img src="https://flagcdn.com/w40/${jogo.flagB}.png">` : '';
+            const pct = Math.round(jogo.pct * 100);
+            return `
+                <div class="jogo-destaque ${cls}">
+                    <span class="jogo-destaque-tag">${tag}</span>
+                    <div class="jogo-destaque-placar">
+                        <span>${flagA}${jogo.nomeA}</span>
+                        <span style="color:var(--amarelo);">${jogo.placarA} x ${jogo.placarB}</span>
+                        <span>${jogo.nomeB}${flagB}</span>
+                    </div>
+                    <div class="jogo-destaque-fase">${jogo.fase}</div>
+                    <div class="jogo-destaque-stats">
+                        <div class="pts-bar" style="max-width:none;flex:1;">
+                            <div class="pts-bar-fill" style="width:${pct}%; background:${tipo === 'top' ? 'linear-gradient(90deg, var(--verde), var(--amarelo))' : 'linear-gradient(90deg, var(--danger-esc), var(--danger))'};"></div>
+                        </div>
+                        <span>${jogo.acertos}/${jogo.comPalpite} acertaram (${pct}%) · ⭐${jogo.exatos} exato${jogo.exatos !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>`;
+        }
+
+        function renderJogoDaRodada() {
+            const container = document.getElementById('jogoRodadaContainer');
+            if (!container) return;
+
+            const lista = calcularEstatisticasJogos();
+            if (lista.length === 0) {
+                container.innerHTML = '<div class="evo-vazio">⏳ Aguardando jogos com resultado e palpites para apurar.</div>';
+                return;
+            }
+
+            const melhor = lista.slice().sort((a, b) => (b.pct - a.pct) || (b.exatos - a.exatos))[0];
+
+            const minRespondentes = Math.max(3, Math.ceil(integrantes.length * 0.5));
+            let poolPior = lista.filter(j => j.comPalpite >= minRespondentes);
+            if (poolPior.length === 0) poolPior = lista;
+            const pior = poolPior.slice().sort((a, b) => (a.pct - b.pct) || (a.exatos - b.exatos))[0];
+
+            let html = renderDestaqueJogo(melhor, 'top');
+            if (pior && pior !== melhor) html += renderDestaqueJogo(pior, 'low');
+            container.innerHTML = html;
+        }
+
+        // ── 3) Perfil de Apostador (goleadas vs. conservador) ───────
+        function calcularPerfilApostador() {
+            const perfis = integrantes.map(nome => {
+                let totalGols = 0, qtd = 0;
+
+                const palpitesGrupo = cachePalpites[nome] || {};
+                Object.values(palpitesGrupo).forEach(p => {
+                    if (p && p.gols1 !== undefined && p.gols2 !== undefined && p.gols1 !== '' && p.gols2 !== '' && p.gols1 !== null && p.gols2 !== null) {
+                        totalGols += Number(p.gols1) + Number(p.gols2);
+                        qtd++;
+                    }
+                });
+
+                EVO_FASES_ORDEM.forEach(fase => {
+                    const palpitesKO = cachePalpitesKO[`${nome}_${fase}`] || {};
+                    Object.values(palpitesKO).forEach(p => {
+                        if (p && p.gols1 !== undefined && p.gols2 !== undefined && p.gols1 !== '' && p.gols2 !== '' && p.gols1 !== null && p.gols2 !== null) {
+                            totalGols += Number(p.gols1) + Number(p.gols2);
+                            qtd++;
+                        }
+                    });
+                });
+
+                return { nome, media: qtd > 0 ? totalGols / qtd : 0, qtd };
+            }).filter(p => p.qtd > 0);
+
+            perfis.sort((a, b) => b.media - a.media);
+            return perfis;
+        }
+
+        function renderPerfilApostador() {
+            const container = document.getElementById('perfilApostadorContainer');
+            if (!container) return;
+
+            const perfis = calcularPerfilApostador();
+            if (perfis.length === 0) {
+                container.innerHTML = '<div class="evo-vazio">⏳ Aguardando palpites para calcular o perfil de cada apostador.</div>';
+                return;
+            }
+
+            const maxMedia = Math.max(...perfis.map(p => p.media), 0.1);
+
+            const linhas = perfis.map((p, i) => {
+                const pct = Math.round((p.media / maxMedia) * 100);
+                let tagExtra = '';
+                if (i === 0) tagExtra = ' 🎉';
+                if (i === perfis.length - 1 && perfis.length > 1) tagExtra = ' 🛡️';
+                return `
+                    <div class="perfil-linha">
+                        <span class="perfil-pos">${i + 1}º</span>
+                        <span>
+                            <span class="perfil-nome">${p.nome}${tagExtra}</span>
+                            <div class="perfil-bar-wrap"><div class="perfil-bar-fill" style="width:${pct}%"></div></div>
+                        </span>
+                        <span class="perfil-media">${p.media.toFixed(1)}</span>
+                    </div>`;
+            }).join('');
+
+            const top = perfis[0];
+            const baixo = perfis[perfis.length - 1];
+            const resumo = perfis.length > 1
+                ? `<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">
+                     🎉 <strong style="color:var(--text);">${top.nome}</strong> é quem mais aposta em goleadas (média de ${top.media.toFixed(1)} gols/jogo) ·
+                     🛡️ <strong style="color:var(--text);">${baixo.nome}</strong> é o(a) mais conservador(a) (${baixo.media.toFixed(1)} gols/jogo)
+                   </div>`
+                : '';
+
+            container.innerHTML = resumo + `<div>${linhas}</div>
+                <div style="font-size:10px;color:var(--text-dim);margin-top:10px;">Média de gols somados (seu time + adversário) por palpite enviado.</div>`;
+        }
+
+        // ── Renderiza tudo ───────────────────────────────────────────
+        function renderizarEstatisticas() {
+            renderEvolucaoChart();
+            renderJogoDaRodada();
+            renderPerfilApostador();
+        }
+        window.renderizarEstatisticas = renderizarEstatisticas;
     </script>
 
     <script>
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+
+
+            // Recarrega a página automaticamente quando um novo SW assume o controle
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+            });
+
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {})
-                .then(reg => console.log('Service Worker registrado com sucesso!', reg))
-      .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => {
+                        console.log('Service Worker registrado com sucesso!', reg);
+
+                        // Verifica se já existe um SW esperando (ex: usuário voltou ao app)
+                        if (reg.waiting) {
+                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        }
+
+                        // Detecta quando uma nova versão do SW termina de instalar
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Nova versão pronta: manda ativar na hora
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                }
+                            });
+                        });
+
+                        // Checa por atualizações sempre que o app volta ao primeiro plano
+                        document.addEventListener('visibilitychange', () => {
+                            if (document.visibilityState === 'visible') {
+                                reg.update();
+                            }
+                        });
+                    })
+                    .catch(err => console.error('Erro ao registrar o Service Worker:', err));
             });
         }
     </script>

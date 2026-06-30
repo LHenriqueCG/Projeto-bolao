@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bolao-copa-2026-v1';
+const CACHE_NAME = 'bolao-copa-2026-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -25,6 +25,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Permite que a página force a ativação imediata do novo SW
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Network first para o Firebase e API, cache first para assets locais
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
@@ -41,7 +48,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Assets locais: cache first, fallback para rede
+  // HTML / navegação: network-first, pra nunca travar numa versão antiga
+  // (isso cobre tanto requests de navegação quanto './' e './index.html')
+  const isHTML =
+    event.request.mode === 'navigate' ||
+    url.pathname.endsWith('/') ||
+    url.pathname.endsWith('index.html');
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request)) // offline: cai pro cache
+    );
+    return;
+  }
+
+  // Demais assets locais (css, js, imagens, manifest): cache first, fallback para rede
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
