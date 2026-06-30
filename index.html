@@ -3571,9 +3571,17 @@
                 }
 
                 const cidadeHtml = jogo.cidade ? `<div class="jogo-data">📍 ${jogo.cidade}${jogo.dataHora ? ' · ' + jogo.dataHora : ''}</div>` : '';
+                const penaltisHtml = (r && r.pen1 != null)
+                    ? `<div style="grid-column:1/-1;text-align:center;font-size:10px;color:var(--amarelo);margin-top:-2px;">⚽ pênaltis: ${r.pen1} x ${r.pen2}</div>`
+                    : '';
 
                 const div = document.createElement('div');
-                div.className = 'jogo-linha-publico';
+                const temPalpites = tA && tB;
+                div.className = temPalpites ? 'jogo-linha-publico jogo-clicavel' : 'jogo-linha-publico';
+                if (temPalpites) {
+                    div.title = 'Ver palpites deste confronto';
+                    div.setAttribute('onclick', `abrirExplorerPorJogoKO('${fase}','${jogo.id}')`);
+                }
                 div.innerHTML = `
                 ${cidadeHtml}
                 <div class="time-box esquerdo">
@@ -3589,6 +3597,8 @@
                     ${flagB}
                     <span>${nomeB}</span>
                 </div>
+                ${penaltisHtml}
+                ${temPalpites ? '<div class="jogo-clicavel-hint">👥</div>' : ''}
                 `;
                 container.appendChild(div);
             });
@@ -3744,6 +3754,15 @@
             return 'erro';
         }
 
+        // Mata-mata: "cravou" exige acertar o placar normal E o vencedor (que pode vir de pênaltis).
+        // Acertar só o vencedor (sem cravar o placar) conta como acerto parcial.
+        function classificarPalpiteKO(palpite, real) {
+            if (!real) return 'pendente';
+            if (palpite.gols1 === real.gols1 && palpite.gols2 === real.gols2 && palpite.vencedor === real.vencedor) return 'cheio';
+            if (palpite.vencedor === real.vencedor) return 'parcial';
+            return 'erro';
+        }
+
         function badgeHtml(tipo) {
             if (tipo === 'cheio') return `<span class="palpite-badge badge-ouro">⭐ +3 pts</span>`;
             if (tipo === 'parcial') return `<span class="palpite-badge badge-verde">✔ +1 pt</span>`;
@@ -3800,6 +3819,81 @@
             }
         }
         window.abrirExplorerPorJogo = abrirExplorerPorJogo;
+
+        // ── MODO JOGO (MATA-MATA): clique num confronto de fase eliminatória ──
+        function abrirExplorerPorJogoKO(fase, idJogo) {
+            _renderJogoKO(fase, idJogo);
+        }
+        window.abrirExplorerPorJogoKO = abrirExplorerPorJogoKO;
+
+        function _renderJogoKO(fase, idJogo) {
+            const jogo = fasesKO[fase].jogos.find(j => j.id === idJogo);
+            const real = (cacheResultadosKO[fase] || {})[idJogo];
+            const tA = resolverTimeKO(jogo.fonteA);
+            const tB = resolverTimeKO(jogo.fonteB);
+            const nA = tA ? tA.nome : jogo.labelA;
+            const nB = tB ? tB.nome : jogo.labelB;
+            const codA = tA?.cod, codB = tB?.cod;
+
+            const titulo = `🔍 ${codA ? `<img src="https://flagcdn.com/w40/${codA}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">` : ''}
+            ${nA} <span style="color:var(--text-dim);">×</span> ${nB}
+            ${codB ? `<img src="https://flagcdn.com/w40/${codB}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">` : ''}`;
+
+            const placarOficialHtml = real
+                ? `<div class="explorer-placar-oficial">
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);">Resultado Oficial — ${fasesKO[fase].label}</span>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:var(--amarelo);line-height:1;text-shadow:0 0 20px rgba(255,223,0,0.3);">
+                    ${real.gols1} <span style="color:var(--text-dim);font-size:28px;">×</span> ${real.gols2}
+                </div>
+                ${real.pen1 != null ? `<div style="font-size:13px;color:var(--text-dim);margin-top:4px;">Pênaltis: ${real.pen1} × ${real.pen2}</div>` : ''}
+               </div>`
+                : `<div class="explorer-placar-oficial" style="opacity:0.6;">
+                <span style="font-size:12px;color:var(--text-dim);">⏳ Aguardando resultado — ${fasesKO[fase].label}</span>
+               </div>`;
+
+            // Quem tem palpite cadastrado para este jogo nesta fase
+            const comPalpite = integrantes.filter(n => cachePalpitesKO[`${n}_${fase}`]?.[idJogo]);
+            let qtdCheio = 0, qtdParcial = 0, qtdErro = 0;
+            comPalpite.forEach(n => {
+                const tipo = classificarPalpiteKO(cachePalpitesKO[`${n}_${fase}`][idJogo], real);
+                if (tipo === 'cheio') qtdCheio++;
+                if (tipo === 'parcial') qtdParcial++;
+                if (tipo === 'erro') qtdErro++;
+            });
+
+            const statsJogoHtml = real && comPalpite.length ? `
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
+                <div class="jogo-stat-pill pill-ouro">⭐ ${qtdCheio} cravou${qtdCheio !== 1 ? 'aram' : ''}</div>
+                <div class="jogo-stat-pill pill-verde">✔ ${qtdParcial} venc. certo</div>
+                <div class="jogo-stat-pill pill-erro">✗ ${qtdErro} erro${qtdErro !== 1 ? 's' : ''}</div>
+            </div>` : '';
+
+            const ordem = { cheio: 0, parcial: 1, erro: 2, pendente: 3 };
+            const lista = comPalpite
+                .map(nome => ({ nome, p: cachePalpitesKO[`${nome}_${fase}`][idJogo], tipo: classificarPalpiteKO(cachePalpitesKO[`${nome}_${fase}`][idJogo], real) }))
+                .sort((a, b) => ordem[a.tipo] - ordem[b.tipo]);
+
+            let cards = lista.map(({ nome, p, tipo }) =>
+                `<div class="${cardClass(tipo)}">
+                <div class="palpite-nome">${nome}</div>
+                <div class="palpite-placar">${p.gols1}<span style="color:var(--text-dim);font-size:18px;">×</span>${p.gols2}</div>
+                ${badgeHtml(tipo)}
+             </div>`).join('');
+
+            if (!cards) cards = '<div class="explorer-empty">😶 Nenhum palpite cadastrado para este confronto ainda.</div>';
+
+            const semPalpite = integrantes.filter(n => !cachePalpitesKO[`${n}_${fase}`]?.[idJogo]);
+            const semHtml = semPalpite.length
+                ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Ainda sem palpite (${semPalpite.length}):</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    ${semPalpite.map(n => `<span style="font-size:11px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:10px;color:var(--text-dim);">${n}</span>`).join('')}
+                </div></div>` : '';
+
+            const html = placarOficialHtml + statsJogoHtml + `<div class="palpites-grid">${cards}</div>` + semHtml;
+            mostrarExplorer(titulo, '', html, 'none');
+        }
+        window._renderJogoKO = _renderJogoKO;
 
         function _renderJogo(idJogo) {
             const jogo = jogosCopa.find(j => j.id === idJogo);
@@ -4297,7 +4391,8 @@
                         const ladoB = tB
                             ? `<div class="mm-time mm-dir">${tB.labelExtra ? `<span class="mm-extra">${tB.labelExtra}</span>` : ''}<span class="mm-nome">${tB.nome}</span><img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag"></div>`
                             : `<div class="mm-time mm-dir mm-pendente"><span class="mm-nome">${conf.labelB}</span></div>`;
-                        return `<div class="mm-card">${ladoA}<div class="mm-vs">VS</div>${ladoB}</div>`;
+                        const temPalpites = tA && tB;
+                        return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}"${temPalpites ? ` style="cursor:pointer;" onclick="abrirExplorerPorJogoKO('16avos','${conf.id}')" title="Ver palpites de todos para este jogo"` : ''}>${ladoA}<div class="mm-vs">VS</div>${ladoB}${temPalpites ? '<div class="jogo-clicavel-hint">👥</div>' : ''}</div>`;
                     }).join('');
                     return `<div class="mm-secao"><div class="mm-secao-titulo">${titulo}</div><div class="mm-grid">${cards}</div></div>`;
                 }
@@ -4343,9 +4438,10 @@
                     const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
                     const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
                     const placar = r
-                        ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}</div>`
+                        ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}${r.pen1 != null ? `<div style="font-size:9px;color:var(--text-dim);">pên. ${r.pen1}×${r.pen2}</div>` : ''}</div>`
                         : '<div class="mm-vs">VS</div>';
-                    return `<div class="mm-card" style="opacity:0.65;font-size:11px;">
+                    const temPalpites = tA && tB;
+                    return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}" style="opacity:0.65;font-size:11px;${temPalpites ? 'cursor:pointer;' : ''}"${temPalpites ? ` onclick="abrirExplorerPorJogoKO('${f}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
                         <div class="mm-time mm-esq"><span class="mm-nome" style="font-size:10px;">${nA}</span>${fA}</div>
                         ${placar}
                         <div class="mm-time mm-dir">${fB}<span class="mm-nome" style="font-size:10px;">${nB}</span></div>
@@ -4367,12 +4463,14 @@
                 const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
                 const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
                 const placar = r
-                    ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}</div>`
+                    ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}${r.pen1 != null ? `<div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">pên. ${r.pen1}×${r.pen2}</div>` : ''}</div>`
                     : '<div class="mm-vs">VS</div>';
-                return `<div class="mm-card">
+                const temPalpites = tA && tB;
+                return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}"${temPalpites ? ` style="cursor:pointer;" onclick="abrirExplorerPorJogoKO('${fase}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
                     <div class="mm-time mm-esq"><span class="mm-nome">${nA}</span>${fA}</div>
                     ${placar}
                     <div class="mm-time mm-dir">${fB}<span class="mm-nome">${nB}</span></div>
+                    ${temPalpites ? '<div class="jogo-clicavel-hint">👥</div>' : ''}
                 </div>`;
             }).join('');
 
@@ -4398,8 +4496,28 @@
         // a partir dos classificados. Aqui definimos apenas os IDs fixos.
         const fasesKO = {
             '16avos': { label: '16avos de Final', jogos: chavamento16avos },
-            'oitavas': { label: 'Oitavas de Final', jogos: Array.from({ length: 16 }, (_, i) => ({ id: `oit-${i + 1}`, labelA: `Vencedor 16a-${String(i * 2 + 1).padStart(2, '0')}`, labelB: `Vencedor 16a-${String(i * 2 + 2).padStart(2, '0')}`, fonteA: { ko: '16avos', idx: i * 2 }, fonteB: { ko: '16avos', idx: i * 2 + 1 } })) },
-            'quartas': { label: 'Quartas de Final', jogos: Array.from({ length: 8 }, (_, i) => ({ id: `qrt-${i + 1}`, labelA: `Vencedor Oit-${i * 2 + 1}`, labelB: `Vencedor Oit-${i * 2 + 2}`, fonteA: { ko: 'oitavas', idx: i * 2 }, fonteB: { ko: 'oitavas', idx: i * 2 + 1 } })) },
+            'oitavas': {
+                label: 'Oitavas de Final',
+                // Cruzamento oficial FIFA 2026 — NÃO é por ordem de partida dos 16avos.
+                // A FIFA/ge.globo definem cruzamentos específicos e não-sequenciais (ge.globo.com/futebol/copa-do-mundo):
+                // Oitavas 1: 16a-04 x 16a-06 | Oitavas 2: 16a-11 x 16a-12 | Oitavas 3: 16a-16 x 16a-10 | Oitavas 4: 16a-03 x 16a-05
+                // Oitavas 5: 16a-09 x 16a-14 | Oitavas 6: 16a-01 x 16a-08 | Oitavas 7: 16a-15 x 16a-13 | Oitavas 8: 16a-02 x 16a-07
+                jogos: [
+                    { id: 'oit-1', labelA: 'Vencedor 16a-04', labelB: 'Vencedor 16a-06', fonteA: { ko: '16avos', id16a: '16a-04' }, fonteB: { ko: '16avos', id16a: '16a-06' } }, // Oitavas 1: Alemanha/Paraguai x França/Suécia
+                    { id: 'oit-2', labelA: 'Vencedor 16a-11', labelB: 'Vencedor 16a-12', fonteA: { ko: '16avos', id16a: '16a-11' }, fonteB: { ko: '16avos', id16a: '16a-12' } }, // Oitavas 2: África do Sul/Canadá x Holanda/Marrocos
+                    { id: 'oit-3', labelA: 'Vencedor 16a-16', labelB: 'Vencedor 16a-10', fonteA: { ko: '16avos', id16a: '16a-16' }, fonteB: { ko: '16avos', id16a: '16a-10' } }, // Oitavas 3: Portugal/Croácia x Espanha/Áustria
+                    { id: 'oit-4', labelA: 'Vencedor 16a-03', labelB: 'Vencedor 16a-05', fonteA: { ko: '16avos', id16a: '16a-03' }, fonteB: { ko: '16avos', id16a: '16a-05' } }, // Oitavas 4: EUA/Bósnia x Bélgica/Senegal
+                    { id: 'oit-5', labelA: 'Vencedor 16a-09', labelB: 'Vencedor 16a-14', fonteA: { ko: '16avos', id16a: '16a-09' }, fonteB: { ko: '16avos', id16a: '16a-14' } }, // Oitavas 5: Brasil/Japão x Costa do Marfim/Noruega
+                    { id: 'oit-6', labelA: 'Vencedor 16a-01', labelB: 'Vencedor 16a-08', fonteA: { ko: '16avos', id16a: '16a-01' }, fonteB: { ko: '16avos', id16a: '16a-08' } }, // Oitavas 6: México/Equador x Inglaterra/RD Congo
+                    { id: 'oit-7', labelA: 'Vencedor 16a-15', labelB: 'Vencedor 16a-13', fonteA: { ko: '16avos', id16a: '16a-15' }, fonteB: { ko: '16avos', id16a: '16a-13' } }, // Oitavas 7: Argentina/Cabo Verde x Austrália/Egito
+                    { id: 'oit-8', labelA: 'Vencedor 16a-02', labelB: 'Vencedor 16a-07', fonteA: { ko: '16avos', id16a: '16a-02' }, fonteB: { ko: '16avos', id16a: '16a-07' } }, // Oitavas 8: Suíça/Argélia x Colômbia/Gana
+                ]
+            },
+            'quartas': {
+                label: 'Quartas de Final',
+                // Confirmado pela fonte oficial: Quartas 1: Oit1xOit2 | Quartas 2: Oit3xOit4 | Quartas 3: Oit5xOit6 | Quartas 4: Oit7xOit8
+                jogos: Array.from({ length: 4 }, (_, i) => ({ id: `qrt-${i + 1}`, labelA: `Vencedor Oit-${i * 2 + 1}`, labelB: `Vencedor Oit-${i * 2 + 2}`, fonteA: { ko: 'oitavas', idx: i * 2 }, fonteB: { ko: 'oitavas', idx: i * 2 + 1 } }))
+            },
             'semis': { label: 'Semifinais', jogos: Array.from({ length: 4 }, (_, i) => ({ id: `sem-${i + 1}`, labelA: `Vencedor Qrt-${i * 2 + 1}`, labelB: `Vencedor Qrt-${i * 2 + 2}`, fonteA: { ko: 'quartas', idx: i * 2 }, fonteB: { ko: 'quartas', idx: i * 2 + 1 } })) },
             'final': {
                 label: 'Final & 3º Lugar', jogos: [
@@ -4422,7 +4540,11 @@
             if (fonte.ko) {
                 const res = cacheResultadosKO[fonte.ko];
                 if (!res) return null;
-                const jogoDaFase = fasesKO[fonte.ko].jogos[fonte.idx];
+                // Para oitavas: busca o jogo de 16avos pelo id oficial (id16a), não por índice sequencial,
+                // pois o cruzamento da FIFA não segue a ordem cronológica dos jogos.
+                const jogoDaFase = fonte.id16a
+                    ? fasesKO[fonte.ko].jogos.find(j => j.id === fonte.id16a)
+                    : fasesKO[fonte.ko].jogos[fonte.idx];
                 if (!jogoDaFase) return null;
                 const r = res[jogoDaFase.id];
                 if (!r) return null;
@@ -4508,11 +4630,26 @@
                 const p = isPalpite ? (cachePalpitesKO[`${nome}_${fase}`] || {})[jogo.id] : cache[jogo.id];
                 const v1 = p ? p.gols1 : '';
                 const v2 = p ? p.gols2 : '';
+                const pen1 = (!isPalpite && p && p.pen1 != null) ? p.pen1 : '';
+                const pen2 = (!isPalpite && p && p.pen2 != null) ? p.pen2 : '';
+                const empateAtual = !isPalpite && v1 !== '' && v2 !== '' && Number(v1) === Number(v2);
                 const label3 = jogo.terceiro ? '<span style="font-size:9px;color:var(--text-dim);"> · 3º Lugar</span>' : '';
                 const metaInfo = (jogo.dataHora || jogo.cidade)
                     ? `<div style="grid-column:1/-1;font-size:9px;color:var(--text-dim);text-align:center;padding-bottom:2px;letter-spacing:0.5px;">
                         ${jogo.dataHora ? `🗓 ${jogo.dataHora}` : ''}${jogo.cidade ? ` &nbsp;·&nbsp; 📍 ${jogo.cidade}` : ''}
                        </div>`
+                    : '';
+                // Campo de pênaltis: só aparece nos resultados reais (não palpites) e só quando os gols estão empatados
+                const penaltisHtml = !isPalpite
+                    ? `<div class="ko-penaltis-row" id="${prefix}-pen-wrap-${jogo.id}" style="grid-column:1/-1;display:${empateAtual ? 'flex' : 'none'};align-items:center;justify-content:center;gap:8px;font-size:10px;color:var(--amarelo);padding-top:4px;">
+                        ⚽ Pênaltis:
+                        <input type="number" min="0" id="${prefix}-pen1-${jogo.id}" value="${pen1}" style="width:38px;padding:3px 4px;font-size:11px;text-align:center;">
+                        <span>x</span>
+                        <input type="number" min="0" id="${prefix}-pen2-${jogo.id}" value="${pen2}" style="width:38px;padding:3px 4px;font-size:11px;text-align:center;">
+                       </div>`
+                    : '';
+                const onInputAttr = (!isPalpite)
+                    ? `oninput="toggleKOPenaltis('${prefix}','${jogo.id}')"`
                     : '';
                 return `<div class="ko-jogo-linha ${bloqueado ? 'ko-bloqueado' : ''}" style="flex-wrap:wrap;">
                     ${metaInfo}
@@ -4521,18 +4658,35 @@
                         ${flagA}
                     </div>
                     <div class="placar-inputs">
-                        <input type="number" min="0" id="${prefix}-g1-${jogo.id}" value="${v1}"
+                        <input type="number" min="0" id="${prefix}-g1-${jogo.id}" value="${v1}" ${onInputAttr}
                             ${bloqueado ? 'disabled title="Aguardando classificados"' : ''}>
                         <span>x</span>
-                        <input type="number" min="0" id="${prefix}-g2-${jogo.id}" value="${v2}"
+                        <input type="number" min="0" id="${prefix}-g2-${jogo.id}" value="${v2}" ${onInputAttr}
                             ${bloqueado ? 'disabled' : ''}>
                     </div>
                     <div class="time-box direito" style="flex:1;min-width:0;">
                         ${flagB}
                         <span style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nomeB}${label3}</span>
                     </div>
+                    ${penaltisHtml}
                 </div>`;
             }
+
+            // Mostra/esconde o campo de pênaltis quando o placar fica empatado
+            window.toggleKOPenaltis = function(prefix, jogoId) {
+                const el1 = document.getElementById(`${prefix}-g1-${jogoId}`);
+                const el2 = document.getElementById(`${prefix}-g2-${jogoId}`);
+                const wrap = document.getElementById(`${prefix}-pen-wrap-${jogoId}`);
+                if (!el1 || !el2 || !wrap) return;
+                const empatado = el1.value !== '' && el2.value !== '' && Number(el1.value) === Number(el2.value);
+                wrap.style.display = empatado ? 'flex' : 'none';
+                if (!empatado) {
+                    const p1 = document.getElementById(`${prefix}-pen1-${jogoId}`);
+                    const p2 = document.getElementById(`${prefix}-pen2-${jogoId}`);
+                    if (p1) p1.value = '';
+                    if (p2) p2.value = '';
+                }
+            };
             
             const pendentes = jogos.filter(j => !resolverTimeKO(j.fonteA) || !resolverTimeKO(j.fonteB)).length;
             const avisoHtml = pendentes > 0
@@ -4710,19 +4864,46 @@
             const dados = cacheResultadosKO[fase] ? { ...cacheResultadosKO[fase] } : {};
             let salvos = 0;
 
-            jogos.forEach(jogo => {
-                const el1 = document.getElementById(`kor-g1-${jogo.id}`);
-                const el2 = document.getElementById(`kor-g2-${jogo.id}`);
-                if (!el1 || !el2 || el1.disabled) return;
-                if (el1.value === '' && el2.value === '') {
-                    delete dados[jogo.id]; return;
-                }
-                if (el1.value === '' || el2.value === '') return;
-                const g1 = parseInt(el1.value), g2 = parseInt(el2.value);
-                if (isNaN(g1) || isNaN(g2)) return;
-                dados[jogo.id] = { gols1: g1, gols2: g2, vencedor: g1 > g2 ? 1 : g2 > g1 ? 2 : 0 };
-                salvos++;
-            });
+            try {
+                jogos.forEach(jogo => {
+                    const el1 = document.getElementById(`kor-g1-${jogo.id}`);
+                    const el2 = document.getElementById(`kor-g2-${jogo.id}`);
+                    if (!el1 || !el2 || el1.disabled) return;
+                    if (el1.value === '' && el2.value === '') {
+                        delete dados[jogo.id]; return;
+                    }
+                    if (el1.value === '' || el2.value === '') return;
+                    const g1 = parseInt(el1.value), g2 = parseInt(el2.value);
+                    if (isNaN(g1) || isNaN(g2)) return;
+
+                    let vencedor = g1 > g2 ? 1 : g2 > g1 ? 2 : 0;
+                    let pen1 = null, pen2 = null;
+
+                    // Empate no tempo normal: exige decisão por pênaltis (mata-mata não pode terminar empatado)
+                    if (vencedor === 0) {
+                        const elPen1 = document.getElementById(`kor-pen1-${jogo.id}`);
+                        const elPen2 = document.getElementById(`kor-pen2-${jogo.id}`);
+                        const pv1 = elPen1 ? elPen1.value : '';
+                        const pv2 = elPen2 ? elPen2.value : '';
+                        if (pv1 === '' || pv2 === '') {
+                            alert(`⚠️ O jogo ${jogo.labelA || ''} x ${jogo.labelB || ''} terminou empatado em ${g1} x ${g2}. Informe o placar dos pênaltis para definir o vencedor.`);
+                            throw new Error('Pênaltis pendentes');
+                        }
+                        pen1 = parseInt(pv1); pen2 = parseInt(pv2);
+                        if (isNaN(pen1) || isNaN(pen2) || pen1 === pen2) {
+                            alert(`⚠️ Placar de pênaltis inválido para ${jogo.labelA || ''} x ${jogo.labelB || ''}. Os pênaltis não podem terminar empatados.`);
+                            throw new Error('Pênaltis inválidos');
+                        }
+                        vencedor = pen1 > pen2 ? 1 : 2;
+                    }
+
+                    dados[jogo.id] = { gols1: g1, gols2: g2, vencedor };
+                    if (pen1 !== null) { dados[jogo.id].pen1 = pen1; dados[jogo.id].pen2 = pen2; }
+                    salvos++;
+                });
+            } catch (e) {
+                return; // interrompe o salvamento; o alerta já foi exibido
+            }
 
             const ok = await window.fb_salvarResultadosKO(fase, dados);
             if (ok) {
