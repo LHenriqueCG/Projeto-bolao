@@ -1954,14 +1954,6 @@
                         <div id="explorerChipsNav" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
                     </div>
 
-                    <!-- mini barra de navegação entre fases (visível só no modo integrante) -->
-                    <div id="explorerNavFases" style="display:none; margin-bottom:14px;">
-                        <div
-                            style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
-                            Fase dos Palpites:</div>
-                        <div id="explorerFasesNav" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-                    </div>
-
                     <!-- mini barra de navegação entre jogos (visível só no modo jogo) -->
                     <div id="explorerNavJogos" style="display:none; margin-bottom:14px;">
                         <div
@@ -2212,7 +2204,7 @@
                      </div>
 
                      <!-- ══ LANÇAR RESULTADOS ══ -->
-                     <div class="card" id="cardLancarResultados" style="margin-bottom:16px;">
+                     <div class="card" style="margin-bottom:16px;">
                          <div style="display:block;width:100%;">
                              <h2 style="display:inline-block;margin:0;font-size:16px;">⚽ 2. Lançar Resultados</h2>
                              <button onclick="zerarApenasResultadosReais()" class="btn-clear-results">🗑️ Limpar
@@ -2226,7 +2218,7 @@
                      </div>
                      
                       <!-- ══ DESEMPATE MANUAL DE GRUPOS ══ -->
-                      <div class="card" id="cardDesempateGrupos" style="margin-bottom:16px;">
+                      <div class="card" style="margin-bottom:16px;">
                           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
                               <h2 style="margin:0; font-size:16px;">⚖️ Desempate Manual de Grupos</h2>
                               <button onclick="salvarDesempates()" style="background:var(--verde); color:white; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:700;">💾 Salvar Desempates</button>
@@ -2237,7 +2229,7 @@
 
                       <!-- ══ ATRIBUIÇÃO DOS 3ºs NOS 16AVOS ══ -->
 
-                     <div class="card" id="cardMelhoresTerceiros" style="margin-bottom:16px;">
+                     <div class="card" style="margin-bottom:16px;">
                          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
                              <h2 style="margin:0; font-size:16px;">🏅 3. Atribuir Melhores Terceiros</h2>
                              <button onclick="salvarManual3()" style="background:var(--verde); color:white; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:700;">💾 Salvar Atribuições</button>
@@ -2255,7 +2247,7 @@
                          <div id="syncLog" style="margin-top:6px;font-size:11px;color:#64748b;max-height:100px;overflow-y:auto;line-height:1.6;"></div>
                      </div>
 
-                     <div class="card" id="cardStatusParticipantes" style="margin-bottom: 30px;">
+                     <div class="card" style="margin-bottom: 30px;">
                          <h3>👥 Status dos Participantes</h3>
 
                         <div id="listaChips" class="list-players"></div>
@@ -2717,7 +2709,6 @@
             if (aba === 'admin') {
                 renderManual3Panel();
                 renderDesempatePanel();
-                selecionarFasePalpites(determinarFaseAtual());
             }
         }
         window.mudarAba = mudarAba;
@@ -2749,7 +2740,6 @@
                     renderManual3Panel();
                     renderDesempatePanel();
                     atualizarBotoesFaseAdmin();
-                    selecionarFasePalpites(determinarFaseAtual());
                     // Garante que o olho volta para fechado ao sair
 
                 document.getElementById('senhaInput').type = 'password';
@@ -3102,12 +3092,6 @@
         function verificarStatusJogador() {
             const nome = document.getElementById('integrante').value;
             const badge = document.getElementById('statusJogador');
-            // Badge só é relevante na fase de grupos; oculta nas fases KO
-            if (fasePalpitesAtiva !== 'grupos') {
-                badge.style.display = 'none';
-                return;
-            }
-            badge.style.display = '';
             if (cachePalpites[nome]) {
                 badge.textContent = `✅ Pronto no banco (${Object.keys(cachePalpites[nome]).length}j)`;
                 badge.className = "status-badge status-saved";
@@ -3137,24 +3121,11 @@
             document.getElementById('painelGrupos').style.display = isGrupos ? '' : 'none';
             document.getElementById('painelKO').style.display = isGrupos ? 'none' : '';
 
-            // Oculta cards específicos na visualização de fases de mata-mata
-            const cardLancar = document.getElementById('cardLancarResultados');
-            const cardDesempate = document.getElementById('cardDesempateGrupos');
-            const cardTerceiros = document.getElementById('cardMelhoresTerceiros');
-            const cardStatus = document.getElementById('cardStatusParticipantes');
-
-            if (cardLancar) cardLancar.style.display = isGrupos ? '' : 'none';
-            if (cardDesempate) cardDesempate.style.display = isGrupos ? '' : 'none';
-            if (cardTerceiros) cardTerceiros.style.display = isGrupos ? '' : 'none';
-            if (cardStatus) cardStatus.style.display = isGrupos ? '' : 'none';
-
             if (!isGrupos) {
                 // Sincroniza a fase KO ativa e renderiza
                 koFaseAtiva = fase;
                 renderKOJogos();
             }
-            // Atualiza visibilidade do badge de status (só aparece na fase de grupos)
-            verificarStatusJogador();
         }
         window.selecionarFasePalpites = selecionarFasePalpites;
 
@@ -3302,18 +3273,10 @@
                         const real = resKO[idJogo];
                         const palpite = palpitesKO[idJogo];
                         if (!palpite) continue;
-                        const pg1 = Number(palpite.gols1);
-                        const pg2 = Number(palpite.gols2);
-                        const rg1 = Number(real.gols1);
-                        const rg2 = Number(real.gols2);
-                        if (rg1 === pg1 && rg2 === pg2) {
+                        if (real.gols1 === palpite.gols1 && real.gols2 === palpite.gols2) {
                             pontos += 3; exatos++;
-                        } else {
-                            const vencedorPalpite = pg1 > pg2 ? 1 : (pg2 > pg1 ? 2 : 0);
-                            const vencedorReal90 = rg1 > rg2 ? 1 : (rg2 > rg1 ? 2 : 0);
-                            if (vencedorReal90 === vencedorPalpite) {
-                                pontos += 1; acertos++;
-                            }
+                        } else if (real.vencedor === palpite.vencedor) {
+                            pontos += 1; acertos++;
                         }
                     }
                 }
@@ -3799,14 +3762,8 @@
         // Acertar só o vencedor (sem cravar o placar) conta como acerto parcial.
         function classificarPalpiteKO(palpite, real) {
             if (!real) return 'pendente';
-            const pg1 = Number(palpite.gols1);
-            const pg2 = Number(palpite.gols2);
-            const rg1 = Number(real.gols1);
-            const rg2 = Number(real.gols2);
-            if (pg1 === rg1 && pg2 === rg2) return 'cheio';
-            const vencedorPalpite = pg1 > pg2 ? 1 : (pg2 > pg1 ? 2 : 0);
-            const vencedorReal90 = rg1 > rg2 ? 1 : (rg2 > rg1 ? 2 : 0);
-            if (vencedorPalpite === vencedorReal90) return 'parcial';
+            if (palpite.gols1 === real.gols1 && palpite.gols2 === real.gols2 && palpite.vencedor === real.vencedor) return 'cheio';
+            if (palpite.vencedor === real.vencedor) return 'parcial';
             return 'erro';
         }
 
@@ -3832,7 +3789,6 @@
 
             // Navegação contextual
             document.getElementById('explorerNavIntegrantes').style.display = modoNav === 'integrante' ? 'block' : 'none';
-            document.getElementById('explorerNavFases').style.display = modoNav === 'integrante' ? 'block' : 'none';
             document.getElementById('explorerNavJogos').style.display = modoNav === 'jogo' ? 'block' : 'none';
 
             const card = document.getElementById('explorerCard');
@@ -3912,7 +3868,7 @@
 
             const statsJogoHtml = real && comPalpite.length ? `
             <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;">
-                <div class="jogo-stat-pill pill-ouro">⭐ ${qtdCheio} exato${qtdCheio !== 1 ? 's' : ''}</div>
+                <div class="jogo-stat-pill pill-ouro">⭐ ${qtdCheio} cravou${qtdCheio !== 1 ? 'aram' : ''}</div>
                 <div class="jogo-stat-pill pill-verde">✔ ${qtdParcial} venc. certo</div>
                 <div class="jogo-stat-pill pill-erro">✗ ${qtdErro} erro${qtdErro !== 1 ? 's' : ''}</div>
             </div>` : '';
@@ -4010,10 +3966,8 @@
         }
 
         // ── MODO INTEGRANTE: clique no nome do ranking ───────────
-        function abrirExplorerPorIntegrante(nome, faseSelecionada) {
-            const faseAtual = determinarFaseAtual();
-            const fase = faseSelecionada || faseAtual;
-            _renderIntegrante(nome, fase);
+        function abrirExplorerPorIntegrante(nome) {
+            _renderIntegrante(nome);
 
             // Chips de navegação entre integrantes com palpites
             const chipsEl = document.getElementById('explorerChipsNav');
@@ -4028,53 +3982,18 @@
                 border:1px solid ${n === nome ? 'var(--amarelo)' : 'var(--border)'};
                 opacity:${tem ? '1' : '0.4'};
                 cursor:${tem ? 'pointer' : 'default'};`;
-                if (tem) chip.onclick = () => abrirExplorerPorIntegrante(n, fase);
+                if (tem) chip.onclick = () => abrirExplorerPorIntegrante(n);
                 chipsEl.appendChild(chip);
             });
         }
         window.abrirExplorerPorIntegrante = abrirExplorerPorIntegrante;
 
-        function _renderIntegrante(nome, faseSelecionada) {
+        function _renderIntegrante(nome) {
             const faseAtual = determinarFaseAtual();
-            const fase = faseSelecionada || faseAtual;
-            const ehMataMata = fase !== 'grupos';
-
-            // Renderiza chips de fases no explorer
-            const fasesEl = document.getElementById('explorerFasesNav');
-            if (fasesEl) {
-                fasesEl.innerHTML = '';
-                const ordemFases = ['grupos', '16avos', 'oitavas', 'quartas', 'semis', 'final'];
-                const nomesFasesLabel = {
-                    grupos: 'Grupos',
-                    '16avos': '16avos',
-                    oitavas: 'Oitavas',
-                    quartas: 'Quartas',
-                    semis: 'Semis',
-                    final: 'Final'
-                };
-                ordemFases.forEach(f => {
-                    const temPalpites = f === 'grupos'
-                        ? (cachePalpites[nome] && Object.keys(cachePalpites[nome]).length > 0)
-                        : (cachePalpitesKO[`${nome}_${f}`] && Object.keys(cachePalpitesKO[`${nome}_${f}`]).length > 0);
-
-                    const chip = document.createElement('button');
-                    chip.textContent = nomesFasesLabel[f];
-                    chip.style.cssText = `width:auto;padding:4px 10px;font-size:11px;border-radius:20px;
-                    background:${f === fase ? 'var(--amarelo)' : 'rgba(255,255,255,0.07)'};
-                    color:${f === fase ? 'var(--verde-esc)' : temPalpites ? 'var(--text)' : 'var(--text-dim)'};
-                    border:1px solid ${f === fase ? 'var(--amarelo)' : 'var(--border)'};
-                    opacity:${temPalpites ? '1' : '0.4'};
-                    cursor:${temPalpites ? 'pointer' : 'default'};`;
-
-                    if (temPalpites) chip.onclick = () => {
-                        abrirExplorerPorIntegrante(nome, f);
-                    };
-                    fasesEl.appendChild(chip);
-                });
-            }
+            const ehMataMata = faseAtual !== 'grupos';
 
             if (ehMataMata) {
-                _renderIntegranteKO(nome, fase);
+                _renderIntegranteKO(nome, faseAtual);
                 return;
             }
 
@@ -4714,7 +4633,7 @@
                 // Confirmado pela fonte oficial: Quartas 1: Oit1xOit2 | Quartas 2: Oit3xOit4 | Quartas 3: Oit5xOit6 | Quartas 4: Oit7xOit8
                 jogos: Array.from({ length: 4 }, (_, i) => ({ id: `qrt-${i + 1}`, labelA: `Vencedor Oit-${i * 2 + 1}`, labelB: `Vencedor Oit-${i * 2 + 2}`, fonteA: { ko: 'oitavas', idx: i * 2 }, fonteB: { ko: 'oitavas', idx: i * 2 + 1 } }))
             },
-            'semis': { label: 'Semifinais', jogos: Array.from({ length: 2 }, (_, i) => ({ id: `sem-${i + 1}`, labelA: `Vencedor Qrt-${i * 2 + 1}`, labelB: `Vencedor Qrt-${i * 2 + 2}`, fonteA: { ko: 'quartas', idx: i * 2 }, fonteB: { ko: 'quartas', idx: i * 2 + 1 } })) },
+            'semis': { label: 'Semifinais', jogos: Array.from({ length: 4 }, (_, i) => ({ id: `sem-${i + 1}`, labelA: `Vencedor Qrt-${i * 2 + 1}`, labelB: `Vencedor Qrt-${i * 2 + 2}`, fonteA: { ko: 'quartas', idx: i * 2 }, fonteB: { ko: 'quartas', idx: i * 2 + 1 } })) },
             'final': {
                 label: 'Final & 3º Lugar', jogos: [
                     { id: 'final-2', labelA: 'Perdedor Semi-1', labelB: 'Perdedor Semi-2', fonteA: { ko: 'semis', idx: 0, perdedor: true }, fonteB: { ko: 'semis', idx: 1, perdedor: true }, terceiro: true },
@@ -4925,24 +4844,11 @@
                 ? '' : `<div style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center;">⚠️ Preencha todos os resultados para liberar a próxima fase</div>`;
             
             container.innerHTML = avisoHtml
-                + `<details style="margin-bottom:14px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;">
-                    <summary style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--text-dim);background:rgba(255,255,255,0.03);user-select:none;list-style:none;">
-                        <span style="font-size:13px;">▶</span>
-                        ✏️ Palpites de ${nome} (Visão Geral)
-                    </summary>
-                    <div class="jogos-container" style="margin:0;border-top:1px solid rgba(255,255,255,0.06);">${linhasPalpites}</div>
-                   </details>`
-                + `<div style="border:2px solid var(--verde);border-radius:14px;background:rgba(0,200,80,0.07);padding:20px;margin-bottom:10px;">
-                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-                        <span style="font-size:30px;">🏁</span>
-                        <div>
-                            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2.5px;color:var(--verde);">Resultados Reais</div>
-                            <div style="font-size:12px;color:var(--text-dim);letter-spacing:1.5px;margin-top:2px;">${fasesKO[fase].label}</div>
-                        </div>
-                    </div>
-                    <div class="jogos-container" style="margin-bottom:16px;">${linhasResultados}</div>
-                    <button onclick="salvarResultadosKOFase()" style="background:linear-gradient(135deg,var(--verde-esc),var(--verde));width:100%;font-size:15px;padding:14px;letter-spacing:1.5px;border-radius:10px;">🏁 Salvar Resultados Reais desta Fase</button>
-                   </div>`
+                + `<div class="ko-secao-label">✏️ Palpites de ${nome} (Visão Geral)</div>`
+                + `<div class="jogos-container" style="max-height:300px;margin-bottom:14px;">${linhasPalpites}</div>`
+                + `<div class="ko-secao-label">🏁 Resultados Reais — ${fasesKO[fase].label}</div>`
+                + `<div class="jogos-container" style="max-height:300px;margin-bottom:8px;">${linhasResultados}</div>`
+                + `<button onclick="salvarResultadosKOFase()" style="background:linear-gradient(135deg,var(--verde-esc),var(--verde));margin-bottom:8px; width:100%;">🏁 Salvar Resultados Reais desta Fase</button>`
                 + bloqueioProxFase;
         }
         window.renderKOJogos = renderKOJogos;
