@@ -6073,14 +6073,16 @@
             geral: {
                 titulo: '🏆 Quem mais acerta',
                 corPct: 'var(--verde)',
-                sort: (a, b) => (b.taxaAcerto - a.taxaAcerto) || (b.exatos - a.exatos) || (b.comPalpite - a.comPalpite),
+                chave: d => d.exatos + d.acertos,
+                sort: (a, b) => ((b.exatos + b.acertos) - (a.exatos + a.acertos)) || (b.taxaAcerto - a.taxaAcerto) || (b.comPalpite - a.comPalpite),
                 pct: d => d.taxaAcerto,
-                destaque: d => `<strong style="color:var(--text);">${d.nome}</strong> lidera com ${Math.round(d.taxaAcerto * 100)}% de aproveitamento (${d.exatos + d.acertos} de ${d.comPalpite} palpites)`,
-                destaqueEmpate: lista => `<strong style="color:var(--text);">${formatarListaNomes(lista.map(d => d.nome))}</strong> empatam na liderança com ${Math.round(lista[0].taxaAcerto * 100)}% de aproveitamento`
+                destaque: d => `<strong style="color:var(--text);">${d.nome}</strong> lidera com ${d.exatos + d.acertos} acerto${(d.exatos + d.acertos) !== 1 ? 's' : ''} (${Math.round(d.taxaAcerto * 100)}% de aproveitamento)`,
+                destaqueEmpate: lista => `<strong style="color:var(--text);">${formatarListaNomes(lista.map(d => d.nome))}</strong> empatam na liderança com ${lista[0].exatos + lista[0].acertos} acerto${(lista[0].exatos + lista[0].acertos) !== 1 ? 's' : ''} cada`
             },
             exatos: {
                 titulo: '⭐ Quem mais crava o placar',
                 corPct: 'var(--amarelo)',
+                chave: d => d.exatos,
                 sort: (a, b) => (b.exatos - a.exatos) || (b.taxaExato - a.taxaExato) || (b.comPalpite - a.comPalpite),
                 pct: d => d.taxaExato,
                 destaque: d => `<strong style="color:var(--text);">${d.nome}</strong> é quem mais crava o placar: ${d.exatos} exato${d.exatos !== 1 ? 's' : ''} (${Math.round(d.taxaExato * 100)}% dos palpites)`,
@@ -6089,6 +6091,7 @@
             erros: {
                 titulo: '😬 Quem mais vacila',
                 corPct: 'var(--danger)',
+                chave: d => d.errados,
                 sort: (a, b) => (b.errados - a.errados) || (b.taxaErro - a.taxaErro) || (b.comPalpite - a.comPalpite),
                 pct: d => d.taxaErro,
                 destaque: d => `<strong style="color:var(--text);">${d.nome}</strong> é quem mais errou: ${d.errados} erro${d.errados !== 1 ? 's' : ''} (${Math.round(d.taxaErro * 100)}% dos palpites)`,
@@ -6110,10 +6113,11 @@
             const modo = MODOS_COMPARATIVO[modoComparativoAtual] || MODOS_COMPARATIVO.geral;
             const lista = dados.slice().sort(modo.sort);
 
-            // Calcula posição considerando empates (mesmos critérios de desempate do modo)
+            // Calcula posição considerando empates pela métrica principal do modo
+            // (não pelos critérios de desempate secundários, que são só para ordenar dentro do empate)
             let posAtual = 1;
             const posicoes = lista.map((d, i) => {
-                if (i > 0 && modo.sort(lista[i - 1], d) !== 0) posAtual = i + 1;
+                if (i > 0 && modo.chave(lista[i - 1]) !== modo.chave(d)) posAtual = i + 1;
                 return posAtual;
             });
             const lideres = lista.filter((d, i) => posicoes[i] === 1);
