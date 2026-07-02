@@ -3150,12 +3150,17 @@
                                 gols2: Number(val.gols2),
                                 vencedor: Number(val.vencedor ?? 0)
                             };
+                            // Preserva prorrogação/pênaltis quando existirem (jogos decididos fora do tempo normal)
+                            if (val.pror1 !== undefined) { novo[key].pror1 = Number(val.pror1); novo[key].pror2 = Number(val.pror2); }
+                            if (val.pen1  !== undefined) { novo[key].pen1  = Number(val.pen1);  novo[key].pen2  = Number(val.pen2);  }
                         }
                     }
                     if (JSON.stringify(novo) === JSON.stringify(cacheResultadosKO[fase])) return;
                     cacheResultadosKO[fase] = novo;
                     calcularResultados();
                     atualizarFasePublica();
+                    // Repinta o painel admin de placares se a fase que chegou é a que está sendo visualizada
+                    if (fase === koFaseAtiva) renderKOJogos();
                     mostrarToast(`🔔 Resultados de ${fase} atualizados!`);
                 });
             });
