@@ -2706,6 +2706,17 @@
                          <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Defina qual 3º colocado de cada grupo ocupará as vagas nos 16avos de final.</p>
                          <div id="manual3Container"></div>
                      </div>
+
+                     <!-- ══ CONFRONTOS MANUAIS DOS 16AVOS ══ -->
+
+                     <div class="card" id="cardConfrontos16" style="margin-bottom:16px;">
+                         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                             <h2 style="margin:0; font-size:16px;">⚔️ 4. Confrontos Manuais — 16avos</h2>
+                             <button onclick="salvarConfrontos16()" style="background:var(--verde); color:white; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:700;">💾 Salvar Confrontos</button>
+                         </div>
+                         <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Opcional: defina manualmente os dois times de qualquer confronto dos 16avos. Isso tem prioridade sobre o cálculo automático (tabela de grupos / melhores terceiros) — útil pra travar o confronto oficial e evitar erro de cálculo.</p>
+                         <div id="confrontos16Container"></div>
+                     </div>
  
                      <!-- ══ SINCRONIZAÇÃO API ══ -->
                      <div class="card" style="margin-bottom:16px;" id="cardApiSync">
@@ -2903,6 +2914,28 @@
         window.fb_limparManual3 = async function () {
             try {
                 await deleteDoc(doc(db, 'config', 'manual3'));
+                return true;
+            } catch (e) { console.error(e); return false; }
+        };
+
+        // ── Confrontos manuais dos 16avos (admin define os dois lados direto) ──
+        window.fb_salvarConfrontos16 = async function (dados) {
+            try {
+                await setDoc(doc(db, 'config', 'confrontos16'), dados);
+                return true;
+            } catch (e) { console.error(e); return false; }
+        };
+
+        window.fb_carregarConfrontos16 = async function () {
+            try {
+                const snap = await getDoc(doc(db, 'config', 'confrontos16'));
+                return snap.exists() ? snap.data() : {};
+            } catch (e) { return {}; }
+        };
+
+        window.fb_limparConfrontos16 = async function () {
+            try {
+                await deleteDoc(doc(db, 'config', 'confrontos16'));
                 return true;
             } catch (e) { console.error(e); return false; }
         };
@@ -3178,6 +3211,7 @@
             if (aba === 'stats') renderizarEstatisticas();
             if (aba === 'admin') {
                 renderManual3Panel();
+                renderConfrontos16Panel();
                 renderDesempatePanel();
                 selecionarFasePalpites(determinarFaseAtual());
             }
@@ -3209,6 +3243,7 @@
                     document.getElementById('senhaInput').value = '';
                     popularSelectIntegranteKO();
                     renderManual3Panel();
+                    renderConfrontos16Panel();
                     renderDesempatePanel();
                     atualizarBotoesFaseAdmin();
                     selecionarFasePalpites(determinarFaseAtual());
@@ -4983,27 +5018,27 @@
         const chavamento16avos = [
             // Ordenados por data/hora (horário de Brasília)
             // 28/06 (domingo)
-            { id: "16a-11", labelA: "2º Grupo A", fonteA: { pos: 2, grupo: "A" }, labelB: "2º Grupo B", fonteB: { pos: 2, grupo: "B" }, dataHora: "28/06 · Dom · 16h00", cidade: "Los Angeles" },
+            { id: "16a-11", labelA: "2º Grupo A", fonteA: { pos: 2, grupo: "A", idJogo: "16a-11", lado: "A" }, labelB: "2º Grupo B", fonteB: { pos: 2, grupo: "B", idJogo: "16a-11", lado: "B" }, dataHora: "28/06 · Dom · 16h00", cidade: "Los Angeles" },
             // 29/06 (segunda)
-            { id: "16a-09", labelA: "1º Grupo C", fonteA: { pos: 1, grupo: "C" }, labelB: "2º Grupo F", fonteB: { pos: 2, grupo: "F" }, dataHora: "29/06 · Seg · 14h00", cidade: "Houston" },
-            { id: "16a-04", labelA: "1º Grupo E", fonteA: { pos: 1, grupo: "E" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-04" }, dataHora: "29/06 · Seg · 17h30", cidade: "Boston" },
-            { id: "16a-12", labelA: "2º Grupo C", fonteA: { pos: 2, grupo: "C" }, labelB: "1º Grupo F", fonteB: { pos: 1, grupo: "F" }, dataHora: "29/06 · Seg · 22h00", cidade: "Monterrey" },
+            { id: "16a-09", labelA: "1º Grupo C", fonteA: { pos: 1, grupo: "C", idJogo: "16a-09", lado: "A" }, labelB: "2º Grupo F", fonteB: { pos: 2, grupo: "F", idJogo: "16a-09", lado: "B" }, dataHora: "29/06 · Seg · 14h00", cidade: "Houston" },
+            { id: "16a-04", labelA: "1º Grupo E", fonteA: { pos: 1, grupo: "E", idJogo: "16a-04", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-04", idJogo: "16a-04", lado: "B" }, dataHora: "29/06 · Seg · 17h30", cidade: "Boston" },
+            { id: "16a-12", labelA: "2º Grupo C", fonteA: { pos: 2, grupo: "C", idJogo: "16a-12", lado: "A" }, labelB: "1º Grupo F", fonteB: { pos: 1, grupo: "F", idJogo: "16a-12", lado: "B" }, dataHora: "29/06 · Seg · 22h00", cidade: "Monterrey" },
             // 30/06 (terça)
-            { id: "16a-14", labelA: "2º Grupo E", fonteA: { pos: 2, grupo: "E" }, labelB: "2º Grupo I", fonteB: { pos: 2, grupo: "I" }, dataHora: "30/06 · Ter · 14h00", cidade: "Dallas" },
-            { id: "16a-06", labelA: "1º Grupo I", fonteA: { pos: 1, grupo: "I" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-06" }, dataHora: "30/06 · Ter · 18h00", cidade: "Nova Jersey" },
-            { id: "16a-01", labelA: "1º Grupo A", fonteA: { pos: 1, grupo: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-01" }, dataHora: "30/06 · Ter · 22h00", cidade: "Azteca" },
+            { id: "16a-14", labelA: "2º Grupo E", fonteA: { pos: 2, grupo: "E", idJogo: "16a-14", lado: "A" }, labelB: "2º Grupo I", fonteB: { pos: 2, grupo: "I", idJogo: "16a-14", lado: "B" }, dataHora: "30/06 · Ter · 14h00", cidade: "Dallas" },
+            { id: "16a-06", labelA: "1º Grupo I", fonteA: { pos: 1, grupo: "I", idJogo: "16a-06", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-06", idJogo: "16a-06", lado: "B" }, dataHora: "30/06 · Ter · 18h00", cidade: "Nova Jersey" },
+            { id: "16a-01", labelA: "1º Grupo A", fonteA: { pos: 1, grupo: "A", idJogo: "16a-01", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-01", idJogo: "16a-01", lado: "B" }, dataHora: "30/06 · Ter · 22h00", cidade: "Azteca" },
             // 01/07 (quarta)
-            { id: "16a-08", labelA: "1º Grupo L", fonteA: { pos: 1, grupo: "L" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-08" }, dataHora: "01/07 · Qua · 13h00", cidade: "Atlanta" },
-            { id: "16a-05", labelA: "1º Grupo G", fonteA: { pos: 1, grupo: "G" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-05" }, dataHora: "01/07 · Qua · 17h00", cidade: "Seattle" },
-            { id: "16a-03", labelA: "1º Grupo D", fonteA: { pos: 1, grupo: "D" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-03" }, dataHora: "01/07 · Qua · 21h00", cidade: "Santa Clara" },
+            { id: "16a-08", labelA: "1º Grupo L", fonteA: { pos: 1, grupo: "L", idJogo: "16a-08", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-08", idJogo: "16a-08", lado: "B" }, dataHora: "01/07 · Qua · 13h00", cidade: "Atlanta" },
+            { id: "16a-05", labelA: "1º Grupo G", fonteA: { pos: 1, grupo: "G", idJogo: "16a-05", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-05", idJogo: "16a-05", lado: "B" }, dataHora: "01/07 · Qua · 17h00", cidade: "Seattle" },
+            { id: "16a-03", labelA: "1º Grupo D", fonteA: { pos: 1, grupo: "D", idJogo: "16a-03", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-03", idJogo: "16a-03", lado: "B" }, dataHora: "01/07 · Qua · 21h00", cidade: "Santa Clara" },
             // 02/07 (quinta)
-            { id: "16a-10", labelA: "1º Grupo H", fonteA: { pos: 1, grupo: "H" }, labelB: "2º Grupo J", fonteB: { pos: 2, grupo: "J" }, dataHora: "02/07 · Qui · 16h00", cidade: "Los Angeles" },
-            { id: "16a-16", labelA: "2º Grupo K", fonteA: { pos: 2, grupo: "K" }, labelB: "2º Grupo L", fonteB: { pos: 2, grupo: "L" }, dataHora: "02/07 · Qui · 20h00", cidade: "Toronto" },
+            { id: "16a-10", labelA: "1º Grupo H", fonteA: { pos: 1, grupo: "H", idJogo: "16a-10", lado: "A" }, labelB: "2º Grupo J", fonteB: { pos: 2, grupo: "J", idJogo: "16a-10", lado: "B" }, dataHora: "02/07 · Qui · 16h00", cidade: "Los Angeles" },
+            { id: "16a-16", labelA: "2º Grupo K", fonteA: { pos: 2, grupo: "K", idJogo: "16a-16", lado: "A" }, labelB: "2º Grupo L", fonteB: { pos: 2, grupo: "L", idJogo: "16a-16", lado: "B" }, dataHora: "02/07 · Qui · 20h00", cidade: "Toronto" },
             // 03/07 (sexta)
-            { id: "16a-02", labelA: "1º Grupo B", fonteA: { pos: 1, grupo: "B" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-02" }, dataHora: "03/07 · Sex · 00h00", cidade: "Vancouver" },
-            { id: "16a-13", labelA: "2º Grupo D", fonteA: { pos: 2, grupo: "D" }, labelB: "2º Grupo G", fonteB: { pos: 2, grupo: "G" }, dataHora: "03/07 · Sex · 15h00", cidade: "Dallas" },
-            { id: "16a-15", labelA: "2º Grupo H", fonteA: { pos: 2, grupo: "H" }, labelB: "1º Grupo J", fonteB: { pos: 1, grupo: "J" }, dataHora: "03/07 · Sex · 19h00", cidade: "Miami" },
-            { id: "16a-07", labelA: "1º Grupo K", fonteA: { pos: 1, grupo: "K" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-07" }, dataHora: "03/07 · Sex · 22h30", cidade: "Kansas City" },
+            { id: "16a-02", labelA: "1º Grupo B", fonteA: { pos: 1, grupo: "B", idJogo: "16a-02", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-02", idJogo: "16a-02", lado: "B" }, dataHora: "03/07 · Sex · 00h00", cidade: "Vancouver" },
+            { id: "16a-13", labelA: "2º Grupo D", fonteA: { pos: 2, grupo: "D", idJogo: "16a-13", lado: "A" }, labelB: "2º Grupo G", fonteB: { pos: 2, grupo: "G", idJogo: "16a-13", lado: "B" }, dataHora: "03/07 · Sex · 15h00", cidade: "Dallas" },
+            { id: "16a-15", labelA: "2º Grupo H", fonteA: { pos: 2, grupo: "H", idJogo: "16a-15", lado: "A" }, labelB: "1º Grupo J", fonteB: { pos: 1, grupo: "J", idJogo: "16a-15", lado: "B" }, dataHora: "03/07 · Sex · 19h00", cidade: "Miami" },
+            { id: "16a-07", labelA: "1º Grupo K", fonteA: { pos: 1, grupo: "K", idJogo: "16a-07", lado: "A" }, labelB: "3º (a definir)", fonteB: { manual3: "16a-07", idJogo: "16a-07", lado: "B" }, dataHora: "03/07 · Sex · 22h30", cidade: "Kansas City" },
         ];
 
         // Cache das atribuições manuais dos 3ºs colocados nos 16avos
@@ -5011,8 +5046,19 @@
         let cacheManual3 = {};
         let cacheDesempates = {};
 
+        // Cache dos confrontos manuais dos 16avos — definidos direto pelo admin,
+        // com prioridade sobre o cálculo automático (tabela de grupos / melhores terceiros).
+        // Estrutura: { "16a-01": { nomeA, codA, nomeB, codB }, ... }
+        let cacheConfrontos16 = {};
+
         // Resolve qual time ocupa uma vaga com base na tabela dos grupos
         function resolverTime(fonte) {
+            // Confronto manual (admin define os dois lados direto, sem depender da tabela de grupos)
+            if (fonte.idJogo && fonte.lado) {
+                const manual = cacheConfrontos16[fonte.idJogo];
+                const nome = manual?.[`nome${fonte.lado}`];
+                if (nome) return { nome, cod: manual[`cod${fonte.lado}`] };
+            }
             if (fonte.pos) {
                 // 1º ou 2º de um grupo
                 const tabela = calcularTabelaGrupo(fonte.grupo);
@@ -5656,10 +5702,11 @@
 
         // Carrega palpites KO, resultados KO e atribuições manuais do Firebase
         async function carregarPalpitesKO() {
-            const [todos, manual3, desempates] = await Promise.all([
+            const [todos, manual3, desempates, confrontos16] = await Promise.all([
                 window.fb_carregarTodosPalpitesKO(),
                 window.fb_carregarManual3(),
-                window.fb_carregarDesempates()
+                window.fb_carregarDesempates(),
+                window.fb_carregarConfrontos16()
             ]);
             cachePalpitesKO = {};
             Object.values(todos).forEach(d => {
@@ -5667,6 +5714,7 @@
             });
             cacheManual3 = manual3;
             cacheDesempates = desempates;
+            cacheConfrontos16 = confrontos16;
             // Carrega resultados de todas as fases KO
             const fases = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
             await Promise.all(fases.map(async f => {
@@ -5730,6 +5778,108 @@
             container.innerHTML = html;
         }
         window.renderManual3Panel = renderManual3Panel;
+
+        // ══ PAINEL CONFRONTOS MANUAIS 16AVOS ════════════════════
+
+        // Lista achatada de todos os 48 times, com o grupo de origem — usada nos selects
+        function todosOsTimesComGrupo() {
+            const out = [];
+            Object.keys(timesPorGrupo).forEach(letra => {
+                timesPorGrupo[letra].forEach(t => out.push({ nome: t.nome, cod: t.cod, grupo: letra }));
+            });
+            return out.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        }
+
+        // Renderiza os 16 confrontos com um select de cada lado — admin escolhe os dois times direto
+        function renderConfrontos16Panel() {
+            const container = document.getElementById('confrontos16Container');
+            if (!container) return;
+
+            const times = todosOsTimesComGrupo();
+            const optsHtml = (selecionado) => times.map(t => {
+                const sel = selecionado === t.nome ? 'selected' : '';
+                return `<option value="${t.nome}" data-cod="${t.cod}" ${sel}>${t.nome} (Grupo ${t.grupo})</option>`;
+            }).join('');
+
+            let html = '';
+            chavamento16avos.forEach(conf => {
+                const atual = cacheConfrontos16[conf.id] || {};
+                // Pré-preenche com o que o cálculo automático já sabe (só como sugestão, não trava nada)
+                const sugestaoA = !atual.nomeA ? resolverTime({ pos: conf.fonteA.pos, grupo: conf.fonteA.grupo, manual3: conf.fonteA.manual3 }) : null;
+                const sugestaoB = !atual.nomeB ? resolverTime({ pos: conf.fonteB.pos, grupo: conf.fonteB.grupo, manual3: conf.fonteB.manual3 }) : null;
+
+                html += `
+                    <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">${conf.id} · ${conf.dataHora} · ${conf.cidade}</div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <select id="c16-${conf.id}-A" style="flex:1;margin-bottom:0;font-size:12px;padding:8px 10px;width:100%;">
+                                <option value="">${sugestaoA ? `— Sugestão: ${sugestaoA.nome} —` : `— ${conf.labelA} —`}</option>
+                                ${optsHtml(atual.nomeA)}
+                            </select>
+                            <span style="font-size:11px;color:var(--text-dim);">vs</span>
+                            <select id="c16-${conf.id}-B" style="flex:1;margin-bottom:0;font-size:12px;padding:8px 10px;width:100%;">
+                                <option value="">${sugestaoB ? `— Sugestão: ${sugestaoB.nome} —` : `— ${conf.labelB} —`}</option>
+                                ${optsHtml(atual.nomeB)}
+                            </select>
+                            <button onclick="limparConfrontos16Individual('${conf.id}')" style="width:auto;background:none;border:none;cursor:pointer;font-size:14px;padding:4px;color:var(--text-dim);" title="Limpar confronto manual (volta a calcular automático)">🧹</button>
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+        window.renderConfrontos16Panel = renderConfrontos16Panel;
+
+        async function salvarConfrontos16() {
+            const dados = { ...cacheConfrontos16 };
+            let preenchidos = 0;
+
+            chavamento16avos.forEach(conf => {
+                const selA = document.getElementById(`c16-${conf.id}-A`);
+                const selB = document.getElementById(`c16-${conf.id}-B`);
+                if (!selA || !selB) return;
+
+                const nomeA = selA.value, nomeB = selB.value;
+                const codA = nomeA ? selA.options[selA.selectedIndex].getAttribute('data-cod') : null;
+                const codB = nomeB ? selB.options[selB.selectedIndex].getAttribute('data-cod') : null;
+
+                if (nomeA && nomeB) {
+                    dados[conf.id] = { nomeA, codA, nomeB, codB };
+                    preenchidos++;
+                } else if (!nomeA && !nomeB) {
+                    // Nenhum dos dois lados preenchido manualmente → remove override, volta ao automático
+                    delete dados[conf.id];
+                }
+                // Se só um dos lados foi preenchido, mantém o que já estava salvo (evita salvar confronto pela metade)
+            });
+
+            const ok = await window.fb_salvarConfrontos16(dados);
+            if (ok) {
+                cacheConfrontos16 = dados;
+                renderConfrontos16Panel();
+                if (document.getElementById('abaMataMata').classList.contains('active')) {
+                    renderizarMataMata();
+                }
+                alert(`✅ Confrontos manuais salvos (${preenchidos} definido(s)).`);
+            } else {
+                alert('❌ Erro ao salvar confrontos.');
+            }
+        }
+        window.salvarConfrontos16 = salvarConfrontos16;
+
+        async function limparConfrontos16Individual(cid) {
+            const novo = { ...cacheConfrontos16 };
+            delete novo[cid];
+            const ok = await window.fb_salvarConfrontos16(novo);
+            if (ok) {
+                cacheConfrontos16 = novo;
+                renderConfrontos16Panel();
+                if (document.getElementById('abaMataMata').classList.contains('active')) {
+                    renderizarMataMata();
+                }
+            }
+        }
+        window.limparConfrontos16Individual = limparConfrontos16Individual;
 
         function renderDesempatePanel() {
             const container = document.getElementById('desempateContainer');
