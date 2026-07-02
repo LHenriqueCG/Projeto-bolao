@@ -3134,6 +3134,10 @@
                 preencherInputsResultados(cacheResultados);
                 calcularResultados();
                 atualizarFasePublica();
+                // Um resultado de grupo pode definir quem cai nos 16avos (1º/2º colocado) —
+                // repinta o painel admin de KO e o bracket público se estiverem abertos
+                if (koFaseAtiva === '16avos') renderKOJogos();
+                if (document.getElementById('abaMataMata')?.classList.contains('active')) renderizarMataMata();
                 mostrarToast('🔔 Resultados atualizados!');
             });
 
@@ -3161,6 +3165,9 @@
                     atualizarFasePublica();
                     // Repinta o painel admin de placares se a fase que chegou é a que está sendo visualizada
                     if (fase === koFaseAtiva) renderKOJogos();
+                    // Repinta o bracket público (aba "Mata-Mata") se ela estiver aberta —
+                    // sem isso o vencedor propagado só aparecia depois de trocar de aba ou dar F5
+                    if (document.getElementById('abaMataMata')?.classList.contains('active')) renderizarMataMata();
                     mostrarToast(`🔔 Resultados de ${fase} atualizados!`);
                 });
             });
