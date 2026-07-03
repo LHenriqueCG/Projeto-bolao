@@ -2999,41 +2999,29 @@
      LÓGICA DA APLICAÇÃO
      ===================================================== -->
     <script>
-        // ══════════════════════════════════════════════════════════
-        // ÍNDICE DESTE ARQUIVO (use Ctrl+F e cole o nome da seção)
-        // ══════════════════════════════════════════════════════════
-        //  1. DADOS DAS PARTIDAS (FASE DE GRUPOS)
-        //  2. NÚCLEO / INICIALIZAÇÃO E NAVEGAÇÃO ENTRE ABAS
-        //  3. RENDERIZAÇÃO DE LISTAS DE JOGOS (ADMIN / PÚBLICO)
-        //  4. PARSER DE TEXTO / IMPORTAÇÃO DE PALPITES COLADOS
-        //  5. SELEÇÃO DE FASE E INPUTS DE RESULTADOS (ADMIN)
-        //  6. CÁLCULO DE RESULTADOS E RANKING GERAL
-        //  7. CONTROLE DE FASE MANUAL
-        //  8. FASE ATUAL DO BOLÃO
-        //  9. SINCRONIZAÇÃO VIA CLOUDFLARE WORKER
-        // 10. MONITOR DE BANCO / FERRAMENTAS ADMIN
-        // 11. EXPLORADOR DE PALPITES
-        // 12. GRUPOS
-        // 13. MELHORES TERCEIROS
-        // 14. 16AVOS DE FINAL
-        // 15. PALPITES MATA-MATA (ADMIN)
-        // 16. PAINEL MANUAL 3ºS NOS 16AVOS
-        // 17. PAINEL CONFRONTOS MANUAIS 16AVOS
-        // 18. ESTATÍSTICAS
-        //       ├─ Gráfico de Evolução do Ranking
-        //       ├─ Comparativo de Acertos entre Integrantes
-        //       ├─ Sequências (Streaks) de Acertos/Erros
-        //       ├─ Comparativo por Fase (Grupos x Mata-Mata)
-        //       ├─ Zica do Grupo
-        //       ├─ Conquistas / Badges
-        //       ├─ Jogo da Rodada
-        //       ├─ Perfil do Apostador
-        //       └─ Orquestração — renderiza a aba Estatísticas inteira
-        // ══════════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════
+        // ÍNDICE DESTE ARQUIVO (Ctrl+F pelo título da seção, ex: "3. NAVEGAÇÃO")
+        // ═══════════════════════════════════════════════════════════
+        //   1. ESTADO GLOBAL E DADOS DO TORNEIO
+        //   2. INICIALIZAÇÃO E CICLO DE VIDA DA APLICAÇÃO
+        //   3. NAVEGAÇÃO E AUTENTICAÇÃO
+        //   4. FASE DE GRUPOS — PALPITES DOS PARTICIPANTES
+        //   5. FASE DE GRUPOS — RESULTADOS REAIS E RANKING
+        //   6. FASE DE GRUPOS — TABELAS E CLASSIFICAÇÃO
+        //   7. CONTROLE DE FASE DO BOLÃO (admin)
+        //   8. SINCRONIZAÇÃO COM API EXTERNA (Cloudflare Worker)
+        //   9. ADMIN — FERRAMENTAS DE BANCO DE DADOS
+        //   10. EXPLORADOR DE PALPITES (modal de detalhes)
+        //   11. MATA-MATA (KNOCKOUT) — CHAVEAMENTO E PALPITES
+        //   12. ADMIN — PAINÉIS MANUAIS DO MATA-MATA
+        //   13. ABA ESTATÍSTICAS
 
-        // ══════════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════
+        // 1. ESTADO GLOBAL E DADOS DO TORNEIO
+        // ═══════════════════════════════════════════════════════════
+
+
         // ══ DADOS DAS PARTIDAS (FASE DE GRUPOS) ═══════════════════════
-        // ══════════════════════════════════════════════════════════
 
         // Senha gerenciada no Firestore (config/admin → campo "senha")
         let usuarioAutenticado = false;
@@ -3123,10 +3111,13 @@
             { id: "jordânia-argentina", data: "27/jun · Sáb · 23h", t1: "Jordânia", b1: "jo", t2: "Argentina", b2: "ar", rodada: 3, grupo: "J" }
         ];
 
+        // ═══════════════════════════════════════════════════════════
+        // 2. INICIALIZAÇÃO E CICLO DE VIDA DA APLICAÇÃO
+        // ═══════════════════════════════════════════════════════════
+
+
         // ── Inicialização (chamada pelo módulo Firebase após carregar) ──
-        // ══════════════════════════════════════════════════════════
         // ══ NÚCLEO / INICIALIZAÇÃO E NAVEGAÇÃO ENTRE ABAS ═════════════
-        // ══════════════════════════════════════════════════════════
 
         async function inicializarApp() {
             renderizarListaJogosAdmin();
@@ -3255,6 +3246,11 @@
         }
         window.mostrarToast = mostrarToast;
 
+        // ═══════════════════════════════════════════════════════════
+        // 3. NAVEGAÇÃO E AUTENTICAÇÃO
+        // ═══════════════════════════════════════════════════════════
+
+
         // ── Navegação ─────────────────────────────────────────────
         function mudarAba(aba) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -3341,10 +3337,13 @@
         }
         window.fazerLogout = fazerLogout;
 
+        // ═══════════════════════════════════════════════════════════
+        // 4. FASE DE GRUPOS — PALPITES DOS PARTICIPANTES
+        // ═══════════════════════════════════════════════════════════
+
+
         // ── Renderização dos jogos ────────────────────────────────
-        // ══════════════════════════════════════════════════════════
         // ══ RENDERIZAÇÃO DE LISTAS DE JOGOS (ADMIN / PÚBLICO) ═════════
-        // ══════════════════════════════════════════════════════════
 
         function renderizarListaJogosAdmin() {
             const container = document.getElementById('listaJogosPainel');
@@ -3417,23 +3416,9 @@
             });
         }
 
-        function abrirExplorerPorJogo(idJogo) {
-            // Garante que o explorer está na aba "Por Jogo"
-            explorarPorJogo();
-            // Seleciona o jogo no dropdown
-            document.getElementById('filtroJogo').value = idJogo;
-            // Renderiza os palpites
-            renderExplorerJogo();
-            // Scroll suave até o explorador
-            document.querySelector('.card.explorer-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        window.abrirExplorerPorJogo = abrirExplorerPorJogo;
-
         // ── Palpites ──────────────────────────────────────────────
         // ── Utilitários para matching flexível de times ────────────
-        // ══════════════════════════════════════════════════════════
         // ══ PARSER DE TEXTO / IMPORTAÇÃO DE PALPITES COLADOS ══════════
-        // ══════════════════════════════════════════════════════════
 
         function normalizarTexto(str) {
             // Remove acentos e converte para minúsculas
@@ -3513,39 +3498,6 @@
                                 palpitesMapeados[jogo.id] = {
                                     gols1, gols2,
                                     vencedor: gols1 > gols2 ? 1 : gols2 > gols1 ? 2 : 0
-                                };
-                            }
-                        }
-                    });
-                }
-            });
-            return palpitesMapeados;
-        }
-
-        function extrairPlacaresKO(texto, fase) {
-            if (!texto) return {};
-            const lines = texto.split('\n');
-            const palpitesMapeados = {};
-            const jogos = fasesKO[fase].jogos;
-
-            lines.forEach(linha => {
-                const linhaNorm = normalizarTexto(linha);
-                const numeros = linhaNorm.match(/\d+/g);
-                if (numeros && numeros.length >= 2) {
-                    jogos.forEach(jogo => {
-                        const tA = resolverTimeKO(jogo.fonteA);
-                        const tB = resolverTimeKO(jogo.fonteB);
-                        const nomeA = tA ? tA.nome : jogo.labelA;
-                        const nomeB = tB ? tB.nome : jogo.labelB;
-
-                        if (linhaContemTime(linhaNorm, nomeA) && linhaContemTime(linhaNorm, nomeB)) {
-                            const g1 = parseInt(numeros[numeros.length - 2]);
-                            const g2 = parseInt(numeros[numeros.length - 1]);
-                            if (!isNaN(g1) && !isNaN(g2)) {
-                                palpitesMapeados[jogo.id] = { 
-                                    gols1: g1, 
-                                    gols2: g2, 
-                                    vencedor: g1 > g2 ? 1 : g2 > g1 ? 2 : 0 
                                 };
                             }
                         }
@@ -3685,9 +3637,7 @@
         const ordemFasesAll = ['grupos', '16avos', 'oitavas', 'quartas', 'semis', 'final'];
         let fasePalpitesAtiva = 'grupos';
 
-        // ══════════════════════════════════════════════════════════
         // ══ SELEÇÃO DE FASE E INPUTS DE RESULTADOS (ADMIN) ════════════
-        // ══════════════════════════════════════════════════════════
 
         function selecionarFasePalpites(fase) {
             fasePalpitesAtiva = fase;
@@ -3745,6 +3695,11 @@
             });
         }
         window.atualizarTabsFasePalpites = atualizarTabsFasePalpites;
+
+        // ═══════════════════════════════════════════════════════════
+        // 5. FASE DE GRUPOS — RESULTADOS REAIS E RANKING
+        // ═══════════════════════════════════════════════════════════
+
 
         // ── Resultados reais ──────────────────────────────────────
 
@@ -3833,9 +3788,7 @@
         window.zerarApenasResultadosReais = zerarApenasResultadosReais;
 
         // ── Ranking ───────────────────────────────────────────────
-        // ══════════════════════════════════════════════════════════
         // ══ CÁLCULO DE RESULTADOS E RANKING GERAL ═════════════════════
-        // ══════════════════════════════════════════════════════════
 
         function calcularResultados() {
             const faseAtual = determinarFaseAtual();
@@ -3986,6 +3939,281 @@
             }
         }
         window.calcularResultados = calcularResultados;
+
+        // ═══════════════════════════════════════════════════════════
+        // 6. FASE DE GRUPOS — TABELAS E CLASSIFICAÇÃO
+        // ═══════════════════════════════════════════════════════════
+
+        // ══ GRUPOS ═══════════════════════════════════════════════
+
+        // Times de cada grupo com bandeiras
+        const timesPorGrupo = {
+            A: [{ nome: "México", cod: "mx" }, { nome: "África do Sul", cod: "za" }, { nome: "Coreia do Sul", cod: "kr" }, { nome: "Tchéquia", cod: "cz" }],
+            B: [{ nome: "Canadá", cod: "ca" }, { nome: "Bósnia", cod: "ba" }, { nome: "Qatar", cod: "qa" }, { nome: "Suíça", cod: "ch" }],
+            C: [{ nome: "Brasil", cod: "br" }, { nome: "Marrocos", cod: "ma" }, { nome: "Haiti", cod: "ht" }, { nome: "Escócia", cod: "gb-sct" }],
+            D: [{ nome: "Estados Unidos", cod: "us" }, { nome: "Paraguai", cod: "py" }, { nome: "Austrália", cod: "au" }, { nome: "Turquia", cod: "tr" }],
+            E: [{ nome: "Alemanha", cod: "de" }, { nome: "Curaçao", cod: "cw" }, { nome: "Costa do Marfim", cod: "ci" }, { nome: "Equador", cod: "ec" }],
+            F: [{ nome: "Holanda", cod: "nl" }, { nome: "Japão", cod: "jp" }, { nome: "Suécia", cod: "se" }, { nome: "Tunísia", cod: "tn" }],
+            G: [{ nome: "Bélgica", cod: "be" }, { nome: "Egito", cod: "eg" }, { nome: "Irã", cod: "ir" }, { nome: "Nova Zelândia", cod: "nz" }],
+            H: [{ nome: "Espanha", cod: "es" }, { nome: "Cabo Verde", cod: "cv" }, { nome: "Arábia Saudita", cod: "sa" }, { nome: "Uruguai", cod: "uy" }],
+            I: [{ nome: "França", cod: "fr" }, { nome: "Senegal", cod: "sn" }, { nome: "Iraque", cod: "iq" }, { nome: "Noruega", cod: "no" }],
+            J: [{ nome: "Argentina", cod: "ar" }, { nome: "Argélia", cod: "dz" }, { nome: "Áustria", cod: "at" }, { nome: "Jordânia", cod: "jo" }],
+            K: [{ nome: "Portugal", cod: "pt" }, { nome: "RD Congo", cod: "cd" }, { nome: "Uzbequistão", cod: "uz" }, { nome: "Colômbia", cod: "co" }],
+            L: [{ nome: "Inglaterra", cod: "gb-eng" }, { nome: "Croácia", cod: "hr" }, { nome: "Gana", cod: "gh" }, { nome: "Panamá", cod: "pa" }],
+        };
+
+        function calcularTabelaGrupo(grupo) {
+            const times = timesPorGrupo[grupo];
+            const tabela = {};
+            times.forEach(t => {
+                tabela[t.nome] = { nome: t.nome, cod: t.cod, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, pts: 0 };
+            });
+
+            jogosCopa.forEach(jogo => {
+                if (jogo.grupo !== grupo) return;
+                const res = cacheResultados[jogo.id];
+                if (!res) return;
+                const t1 = tabela[jogo.t1];
+                const t2 = tabela[jogo.t2];
+                if (!t1 || !t2) return;
+
+                const g1 = res.gols1, g2 = res.gols2;
+                t1.j++; t2.j++;
+                t1.gp += g1; t1.gc += g2;
+                t2.gp += g2; t2.gc += g1;
+
+                if (g1 > g2) { t1.v++; t1.pts += 3; t2.d++; }
+                else if (g1 < g2) { t2.v++; t2.pts += 3; t1.d++; }
+                else { t1.e++; t1.pts++; t2.e++; t2.pts++; }
+            });
+
+            return Object.values(tabela).sort((a, b) => {
+                if (b.pts !== a.pts) return b.pts - a.pts;
+                const sgB = b.gp - b.gc, sgA = a.gp - a.gc;
+                if (sgB !== sgA) return sgB - sgA;
+                if (b.gp !== a.gp) return b.gp - a.gp;
+
+                // Desempate Manual
+                if (cacheDesempates[grupo]) {
+                    const orderA = cacheDesempates[grupo][a.nome] ?? 99;
+                    const orderB = cacheDesempates[grupo][b.nome] ?? 99;
+                    if (orderA !== orderB) return orderA - orderB;
+                }
+
+                return 0;
+            });
+        }
+
+        function renderizarGrupos() {
+            const container = document.getElementById('gruposConteudo');
+            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+
+            const gridHtml = letras.map(letra => {
+                const tabela = calcularTabelaGrupo(letra);
+                const linhas = tabela.map((t, i) => {
+                    const sg = t.gp - t.gc;
+                    const sgStr = sg > 0 ? `+${sg}` : `${sg}`;
+                    const destaque = i < 2 ? 'style="color:var(--amarelo);font-weight:700;"' : '';
+                    const qualif = i < 2 ? '<span class="qualif-dot"></span>' : '<span class="qualif-dot" style="background:transparent;border:1px solid rgba(255,255,255,0.15);"></span>';
+                    return `<tr>
+                    <td>${qualif}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <img src="https://flagcdn.com/w40/${t.cod}.png" style="width:18px;height:13px;border-radius:1px;object-fit:cover;flex-shrink:0;">
+                            <span ${destaque}>${t.nome}</span>
+                        </div>
+                    </td>
+                    <td class="tc">${t.j}</td>
+                    <td class="tc">${t.v}</td>
+                    <td class="tc">${t.e}</td>
+                    <td class="tc">${t.d}</td>
+                    <td class="tc">${t.gp}</td>
+                    <td class="tc">${t.gc}</td>
+                    <td class="tc" style="color:${sg >= 0 ? '#69f0ae' : '#ef9a9a'}">${sgStr}</td>
+                    <td class="tc pts-col">${t.pts}</td>
+                </tr>`;
+                }).join('');
+
+                // Jogos do grupo com resultados
+                const jogosGrupo = jogosCopa.filter(j => j.grupo === letra);
+                const jogosHtml = jogosGrupo.map(j => {
+                    const res = cacheResultados[j.id];
+                    const placar = res
+                        ? `<span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--amarelo);letter-spacing:1px;">${res.gols1}–${res.gols2}</span>`
+                         : `<span style="font-size:10px;color:var(--text-dim);">${j.data}</span>`;
+                    return `<div class="grupo-jogo">
+                    <div class="gj-time">
+                        <img src="https://flagcdn.com/w40/${j.b1}.png" class="flag-img">
+                        <span>${j.t1}</span>
+                    </div>
+                    <div class="gj-placar">${placar}</div>
+                    <div class="gj-time gj-right">
+                        <span>${j.t2}</span>
+                        <img src="https://flagcdn.com/w40/${j.b2}.png" class="flag-img">
+                    </div>
+                </div>`;
+                }).join('');
+
+                return `<div class="grupo-card">
+                <div class="grupo-header">Grupo ${letra}</div>
+                <table class="grupo-tabela">
+                    <thead>
+                        <tr>
+                            <th style="width:14px;"></th>
+                            <th style="text-align:left;">Time</th>
+                            <th class="tc" title="Jogos">J</th>
+                            <th class="tc" title="Vitórias">V</th>
+                            <th class="tc" title="Empates">E</th>
+                            <th class="tc" title="Derrotas">D</th>
+                            <th class="tc" title="Gols Pró">GP</th>
+                            <th class="tc" title="Gols Contra">GC</th>
+                            <th class="tc" title="Saldo de Gols">SG</th>
+                            <th class="tc pts-col" title="Pontos">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody>${linhas}</tbody>
+                </table>
+                <div class="grupo-jogos">${jogosHtml}</div>
+            </div>`;
+            }).join('');
+
+            container.innerHTML = `<div class="grupos-grid">${gridHtml}</div>` + renderTerceiros();
+        }
+        window.renderizarGrupos = renderizarGrupos;
+
+        // ══ MELHORES TERCEIROS ═══════════════════════════════════
+
+        function renderTerceiros() {
+            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+
+            // Pega o 3º de cada grupo (índice 2 na tabela ordenada)
+            const terceiros = letras.map(letra => {
+                const tabela = calcularTabelaGrupo(letra);
+                if (tabela.length < 3) return null;
+                const t = tabela[2];
+                const sg = t.gp - t.gc;
+                return { ...t, sg, grupo: letra, jogosCompletos: t.j === 3 };
+            }).filter(Boolean);
+
+            // Critérios FIFA: pts → sg → gp → (cartão não temos → ranking FIFA não temos)
+            // Mostramos os 8 melhores com nota de desempate
+            const ordenados = [...terceiros].sort((a, b) => {
+                if (b.pts !== a.pts) return b.pts - a.pts;
+                if (b.sg !== a.sg) return b.sg - a.sg;
+                return b.gp - a.gp;
+            });
+
+            const top8 = ordenados.slice(0, 8);
+            const top8ids = new Set(top8.map(t => t.grupo));
+
+            // Quantos grupos completaram a 3ª rodada
+            const gruposCompletos = terceiros.filter(t => t.jogosCompletos).length;
+            const aviso = gruposCompletos < 12
+                ? `<div class="terceiros-aviso">⏳ ${12 - gruposCompletos} grupo(s) ainda sem rodada 3 completa — classificação parcial</div>`
+                : '';
+
+            const linhas = ordenados.map((t, i) => {
+                const sg = t.sg >= 0 ? `+${t.sg}` : `${t.sg}`;
+                const top = top8ids.has(t.grupo) && i < 8;
+                const pos = i + 1;
+                const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}º`;
+                const rowCls = top ? 'terceiro-row terceiro-top' : 'terceiro-row';
+                const qualif = top
+                    ? '<span class="qualif-dot" title="Classificado"></span>'
+                    : '<span class="qualif-dot" style="background:transparent;border:1px solid rgba(255,255,255,0.15);"></span>';
+
+                // Desempate highlight
+                let desempate = '';
+                if (i > 0) {
+                    const ant = ordenados[i - 1];
+                    if (ant.pts === t.pts && ant.sg === t.sg && ant.gp === t.gp) {
+                        desempate = '<span class="desempate-badge" title="Critério de desempate: cartões ou ranking FIFA">⚖️</span>';
+                    }
+                }
+
+                return `<tr class="${rowCls}">
+                <td style="text-align:center;font-size:13px;">${qualif}</td>
+                <td style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-dim);">Grp ${t.grupo}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <img src="https://flagcdn.com/w40/${t.cod}.png" style="width:20px;height:14px;border-radius:1px;object-fit:cover;flex-shrink:0;">
+                        <span style="${top ? 'color:var(--amarelo);font-weight:700;' : ''}">${t.nome}</span>
+                        ${desempate}
+                    </div>
+                </td>
+                <td class="tc">${t.j}</td>
+                <td class="tc">${t.v}</td>
+                <td class="tc">${t.e}</td>
+                <td class="tc">${t.d}</td>
+                <td class="tc">${t.gp}</td>
+                <td class="tc">${t.gc}</td>
+                <td class="tc" style="color:${t.sg >= 0 ? '#69f0ae' : '#ef9a9a'}">${sg}</td>
+                <td class="tc pts-col">${t.pts}</td>
+            </tr>`;
+            }).join('');
+
+            return `
+        <div class="terceiros-card">
+            <div class="terceiros-header">
+                <span>🏅 8 Melhores Terceiros Colocados</span>
+                <span class="terceiros-sub">Os classificados vão para os 16avos de final</span>
+            </div>
+            ${aviso}
+            <div style="overflow-x:auto;">
+                <table class="grupo-tabela terceiros-tabela">
+                    <thead>
+                        <tr>
+                            <th style="width:14px;"></th>
+                            <th style="width:48px;">Grupo</th>
+                            <th style="text-align:left;">Time</th>
+                            <th class="tc" title="Jogos">J</th>
+                            <th class="tc" title="Vitórias">V</th>
+                            <th class="tc" title="Empates">E</th>
+                            <th class="tc" title="Derrotas">D</th>
+                            <th class="tc" title="Gols Pró">GP</th>
+                            <th class="tc" title="Gols Contra">GC</th>
+                            <th class="tc" title="Saldo de Gols">SG</th>
+                            <th class="tc pts-col" title="Pontos">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody>${linhas}</tbody>
+                </table>
+            </div>
+            <div class="terceiros-nota">
+                Critérios de classificação (ordem): Pontos → Saldo de Gols → Gols Pró → Cartões → Ranking FIFA.<br>
+                ⚖️ Indica possível desempate por cartão ou ranking FIFA (critérios não disponíveis automaticamente).
+            </div>
+        </div>`;
+        }
+
+        // Resolve qual time ocupa uma vaga com base na tabela dos grupos
+        function resolverTime(fonte) {
+            // Confronto manual (admin define os dois lados direto, sem depender da tabela de grupos)
+            if (fonte.idJogo && fonte.lado) {
+                const manual = cacheConfrontos16[fonte.idJogo];
+                const nome = manual?.[`nome${fonte.lado}`];
+                if (nome) return { nome, cod: manual[`cod${fonte.lado}`] };
+            }
+            if (fonte.pos) {
+                // 1º ou 2º de um grupo
+                const tabela = calcularTabelaGrupo(fonte.grupo);
+                const t = tabela[fonte.pos - 1];
+                if (!t) return null; // grupo vazio
+                return t;
+            }
+            if (fonte.manual3) {
+                // 3º colocado definido manualmente pelo admin (FIFA bracket)
+                const atrib = cacheManual3[fonte.manual3];
+                if (!atrib) return null;
+                return { nome: atrib.nome, cod: atrib.cod, labelExtra: `3º Grp ${atrib.grupo}` };
+            }
+            return null;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // 7. CONTROLE DE FASE DO BOLÃO (admin)
+        // ═══════════════════════════════════════════════════════════
+
 
         // ══ CONTROLE DE FASE MANUAL ══════════════════════════════
 
@@ -4222,6 +4450,11 @@
         }
         window.renderizarPlacaresKOPublico = renderizarPlacaresKOPublico;
 
+        // ═══════════════════════════════════════════════════════════
+        // 8. SINCRONIZAÇÃO COM API EXTERNA (Cloudflare Worker)
+        // ═══════════════════════════════════════════════════════════
+
+
         // ══ SINCRONIZAÇÃO VIA CLOUDFLARE WORKER ══════════════════
 
         const WORKER_URL = 'https://bolao-football-proxy.luizhcabralg.workers.dev';
@@ -4285,9 +4518,12 @@
         }
         window.forceSyncAgora = forceSyncAgora;
 
-        // ═════════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════
+        // 9. ADMIN — FERRAMENTAS DE BANCO DE DADOS
+        // ═══════════════════════════════════════════════════════════
+
+
         // ══ MONITOR DE BANCO / FERRAMENTAS ADMIN ═══════════════════
-        // ═════════════════════════════════════════════════════════
 
         function atualizarMonitorBanco() {
             const container = document.getElementById('listaChips');
@@ -4354,6 +4590,11 @@
             }
         }
         window.zerarBancoDeDados = zerarBancoDeDados;
+
+        // ═══════════════════════════════════════════════════════════
+        // 10. EXPLORADOR DE PALPITES (modal de detalhes)
+        // ═══════════════════════════════════════════════════════════
+
 
         // ══ EXPLORADOR DE PALPITES ══════════════════════════════
 
@@ -4842,246 +5083,43 @@
 
             mostrarExplorer(titulo, dica, html, 'integrante');
         }
-        // ══ GRUPOS ═══════════════════════════════════════════════
 
-        // Times de cada grupo com bandeiras
-        const timesPorGrupo = {
-            A: [{ nome: "México", cod: "mx" }, { nome: "África do Sul", cod: "za" }, { nome: "Coreia do Sul", cod: "kr" }, { nome: "Tchéquia", cod: "cz" }],
-            B: [{ nome: "Canadá", cod: "ca" }, { nome: "Bósnia", cod: "ba" }, { nome: "Qatar", cod: "qa" }, { nome: "Suíça", cod: "ch" }],
-            C: [{ nome: "Brasil", cod: "br" }, { nome: "Marrocos", cod: "ma" }, { nome: "Haiti", cod: "ht" }, { nome: "Escócia", cod: "gb-sct" }],
-            D: [{ nome: "Estados Unidos", cod: "us" }, { nome: "Paraguai", cod: "py" }, { nome: "Austrália", cod: "au" }, { nome: "Turquia", cod: "tr" }],
-            E: [{ nome: "Alemanha", cod: "de" }, { nome: "Curaçao", cod: "cw" }, { nome: "Costa do Marfim", cod: "ci" }, { nome: "Equador", cod: "ec" }],
-            F: [{ nome: "Holanda", cod: "nl" }, { nome: "Japão", cod: "jp" }, { nome: "Suécia", cod: "se" }, { nome: "Tunísia", cod: "tn" }],
-            G: [{ nome: "Bélgica", cod: "be" }, { nome: "Egito", cod: "eg" }, { nome: "Irã", cod: "ir" }, { nome: "Nova Zelândia", cod: "nz" }],
-            H: [{ nome: "Espanha", cod: "es" }, { nome: "Cabo Verde", cod: "cv" }, { nome: "Arábia Saudita", cod: "sa" }, { nome: "Uruguai", cod: "uy" }],
-            I: [{ nome: "França", cod: "fr" }, { nome: "Senegal", cod: "sn" }, { nome: "Iraque", cod: "iq" }, { nome: "Noruega", cod: "no" }],
-            J: [{ nome: "Argentina", cod: "ar" }, { nome: "Argélia", cod: "dz" }, { nome: "Áustria", cod: "at" }, { nome: "Jordânia", cod: "jo" }],
-            K: [{ nome: "Portugal", cod: "pt" }, { nome: "RD Congo", cod: "cd" }, { nome: "Uzbequistão", cod: "uz" }, { nome: "Colômbia", cod: "co" }],
-            L: [{ nome: "Inglaterra", cod: "gb-eng" }, { nome: "Croácia", cod: "hr" }, { nome: "Gana", cod: "gh" }, { nome: "Panamá", cod: "pa" }],
-        };
+        // ═══════════════════════════════════════════════════════════
+        // 11. MATA-MATA (KNOCKOUT) — CHAVEAMENTO E PALPITES
+        // ═══════════════════════════════════════════════════════════
 
-        function calcularTabelaGrupo(grupo) {
-            const times = timesPorGrupo[grupo];
-            const tabela = {};
-            times.forEach(t => {
-                tabela[t.nome] = { nome: t.nome, cod: t.cod, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, pts: 0 };
-            });
 
-            jogosCopa.forEach(jogo => {
-                if (jogo.grupo !== grupo) return;
-                const res = cacheResultados[jogo.id];
-                if (!res) return;
-                const t1 = tabela[jogo.t1];
-                const t2 = tabela[jogo.t2];
-                if (!t1 || !t2) return;
+        function extrairPlacaresKO(texto, fase) {
+            if (!texto) return {};
+            const lines = texto.split('\n');
+            const palpitesMapeados = {};
+            const jogos = fasesKO[fase].jogos;
 
-                const g1 = res.gols1, g2 = res.gols2;
-                t1.j++; t2.j++;
-                t1.gp += g1; t1.gc += g2;
-                t2.gp += g2; t2.gc += g1;
+            lines.forEach(linha => {
+                const linhaNorm = normalizarTexto(linha);
+                const numeros = linhaNorm.match(/\d+/g);
+                if (numeros && numeros.length >= 2) {
+                    jogos.forEach(jogo => {
+                        const tA = resolverTimeKO(jogo.fonteA);
+                        const tB = resolverTimeKO(jogo.fonteB);
+                        const nomeA = tA ? tA.nome : jogo.labelA;
+                        const nomeB = tB ? tB.nome : jogo.labelB;
 
-                if (g1 > g2) { t1.v++; t1.pts += 3; t2.d++; }
-                else if (g1 < g2) { t2.v++; t2.pts += 3; t1.d++; }
-                else { t1.e++; t1.pts++; t2.e++; t2.pts++; }
-            });
-
-            return Object.values(tabela).sort((a, b) => {
-                if (b.pts !== a.pts) return b.pts - a.pts;
-                const sgB = b.gp - b.gc, sgA = a.gp - a.gc;
-                if (sgB !== sgA) return sgB - sgA;
-                if (b.gp !== a.gp) return b.gp - a.gp;
-
-                // Desempate Manual
-                if (cacheDesempates[grupo]) {
-                    const orderA = cacheDesempates[grupo][a.nome] ?? 99;
-                    const orderB = cacheDesempates[grupo][b.nome] ?? 99;
-                    if (orderA !== orderB) return orderA - orderB;
+                        if (linhaContemTime(linhaNorm, nomeA) && linhaContemTime(linhaNorm, nomeB)) {
+                            const g1 = parseInt(numeros[numeros.length - 2]);
+                            const g2 = parseInt(numeros[numeros.length - 1]);
+                            if (!isNaN(g1) && !isNaN(g2)) {
+                                palpitesMapeados[jogo.id] = { 
+                                    gols1: g1, 
+                                    gols2: g2, 
+                                    vencedor: g1 > g2 ? 1 : g2 > g1 ? 2 : 0 
+                                };
+                            }
+                        }
+                    });
                 }
-
-                return 0;
             });
-        }
-
-        function renderizarGrupos() {
-            const container = document.getElementById('gruposConteudo');
-            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-
-            const gridHtml = letras.map(letra => {
-                const tabela = calcularTabelaGrupo(letra);
-                const linhas = tabela.map((t, i) => {
-                    const sg = t.gp - t.gc;
-                    const sgStr = sg > 0 ? `+${sg}` : `${sg}`;
-                    const destaque = i < 2 ? 'style="color:var(--amarelo);font-weight:700;"' : '';
-                    const qualif = i < 2 ? '<span class="qualif-dot"></span>' : '<span class="qualif-dot" style="background:transparent;border:1px solid rgba(255,255,255,0.15);"></span>';
-                    return `<tr>
-                    <td>${qualif}</td>
-                    <td>
-                        <div style="display:flex;align-items:center;gap:5px;">
-                            <img src="https://flagcdn.com/w40/${t.cod}.png" style="width:18px;height:13px;border-radius:1px;object-fit:cover;flex-shrink:0;">
-                            <span ${destaque}>${t.nome}</span>
-                        </div>
-                    </td>
-                    <td class="tc">${t.j}</td>
-                    <td class="tc">${t.v}</td>
-                    <td class="tc">${t.e}</td>
-                    <td class="tc">${t.d}</td>
-                    <td class="tc">${t.gp}</td>
-                    <td class="tc">${t.gc}</td>
-                    <td class="tc" style="color:${sg >= 0 ? '#69f0ae' : '#ef9a9a'}">${sgStr}</td>
-                    <td class="tc pts-col">${t.pts}</td>
-                </tr>`;
-                }).join('');
-
-                // Jogos do grupo com resultados
-                const jogosGrupo = jogosCopa.filter(j => j.grupo === letra);
-                const jogosHtml = jogosGrupo.map(j => {
-                    const res = cacheResultados[j.id];
-                    const placar = res
-                        ? `<span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--amarelo);letter-spacing:1px;">${res.gols1}–${res.gols2}</span>`
-                         : `<span style="font-size:10px;color:var(--text-dim);">${j.data}</span>`;
-                    return `<div class="grupo-jogo">
-                    <div class="gj-time">
-                        <img src="https://flagcdn.com/w40/${j.b1}.png" class="flag-img">
-                        <span>${j.t1}</span>
-                    </div>
-                    <div class="gj-placar">${placar}</div>
-                    <div class="gj-time gj-right">
-                        <span>${j.t2}</span>
-                        <img src="https://flagcdn.com/w40/${j.b2}.png" class="flag-img">
-                    </div>
-                </div>`;
-                }).join('');
-
-                return `<div class="grupo-card">
-                <div class="grupo-header">Grupo ${letra}</div>
-                <table class="grupo-tabela">
-                    <thead>
-                        <tr>
-                            <th style="width:14px;"></th>
-                            <th style="text-align:left;">Time</th>
-                            <th class="tc" title="Jogos">J</th>
-                            <th class="tc" title="Vitórias">V</th>
-                            <th class="tc" title="Empates">E</th>
-                            <th class="tc" title="Derrotas">D</th>
-                            <th class="tc" title="Gols Pró">GP</th>
-                            <th class="tc" title="Gols Contra">GC</th>
-                            <th class="tc" title="Saldo de Gols">SG</th>
-                            <th class="tc pts-col" title="Pontos">Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody>${linhas}</tbody>
-                </table>
-                <div class="grupo-jogos">${jogosHtml}</div>
-            </div>`;
-            }).join('');
-
-            container.innerHTML = `<div class="grupos-grid">${gridHtml}</div>` + renderTerceiros();
-        }
-        window.renderizarGrupos = renderizarGrupos;
-
-        // ══ MELHORES TERCEIROS ═══════════════════════════════════
-
-        function renderTerceiros() {
-            const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-
-            // Pega o 3º de cada grupo (índice 2 na tabela ordenada)
-            const terceiros = letras.map(letra => {
-                const tabela = calcularTabelaGrupo(letra);
-                if (tabela.length < 3) return null;
-                const t = tabela[2];
-                const sg = t.gp - t.gc;
-                return { ...t, sg, grupo: letra, jogosCompletos: t.j === 3 };
-            }).filter(Boolean);
-
-            // Critérios FIFA: pts → sg → gp → (cartão não temos → ranking FIFA não temos)
-            // Mostramos os 8 melhores com nota de desempate
-            const ordenados = [...terceiros].sort((a, b) => {
-                if (b.pts !== a.pts) return b.pts - a.pts;
-                if (b.sg !== a.sg) return b.sg - a.sg;
-                return b.gp - a.gp;
-            });
-
-            const top8 = ordenados.slice(0, 8);
-            const top8ids = new Set(top8.map(t => t.grupo));
-
-            // Quantos grupos completaram a 3ª rodada
-            const gruposCompletos = terceiros.filter(t => t.jogosCompletos).length;
-            const aviso = gruposCompletos < 12
-                ? `<div class="terceiros-aviso">⏳ ${12 - gruposCompletos} grupo(s) ainda sem rodada 3 completa — classificação parcial</div>`
-                : '';
-
-            const linhas = ordenados.map((t, i) => {
-                const sg = t.sg >= 0 ? `+${t.sg}` : `${t.sg}`;
-                const top = top8ids.has(t.grupo) && i < 8;
-                const pos = i + 1;
-                const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}º`;
-                const rowCls = top ? 'terceiro-row terceiro-top' : 'terceiro-row';
-                const qualif = top
-                    ? '<span class="qualif-dot" title="Classificado"></span>'
-                    : '<span class="qualif-dot" style="background:transparent;border:1px solid rgba(255,255,255,0.15);"></span>';
-
-                // Desempate highlight
-                let desempate = '';
-                if (i > 0) {
-                    const ant = ordenados[i - 1];
-                    if (ant.pts === t.pts && ant.sg === t.sg && ant.gp === t.gp) {
-                        desempate = '<span class="desempate-badge" title="Critério de desempate: cartões ou ranking FIFA">⚖️</span>';
-                    }
-                }
-
-                return `<tr class="${rowCls}">
-                <td style="text-align:center;font-size:13px;">${qualif}</td>
-                <td style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--text-dim);">Grp ${t.grupo}</td>
-                <td>
-                    <div style="display:flex;align-items:center;gap:6px;">
-                        <img src="https://flagcdn.com/w40/${t.cod}.png" style="width:20px;height:14px;border-radius:1px;object-fit:cover;flex-shrink:0;">
-                        <span style="${top ? 'color:var(--amarelo);font-weight:700;' : ''}">${t.nome}</span>
-                        ${desempate}
-                    </div>
-                </td>
-                <td class="tc">${t.j}</td>
-                <td class="tc">${t.v}</td>
-                <td class="tc">${t.e}</td>
-                <td class="tc">${t.d}</td>
-                <td class="tc">${t.gp}</td>
-                <td class="tc">${t.gc}</td>
-                <td class="tc" style="color:${t.sg >= 0 ? '#69f0ae' : '#ef9a9a'}">${sg}</td>
-                <td class="tc pts-col">${t.pts}</td>
-            </tr>`;
-            }).join('');
-
-            return `
-        <div class="terceiros-card">
-            <div class="terceiros-header">
-                <span>🏅 8 Melhores Terceiros Colocados</span>
-                <span class="terceiros-sub">Os classificados vão para os 16avos de final</span>
-            </div>
-            ${aviso}
-            <div style="overflow-x:auto;">
-                <table class="grupo-tabela terceiros-tabela">
-                    <thead>
-                        <tr>
-                            <th style="width:14px;"></th>
-                            <th style="width:48px;">Grupo</th>
-                            <th style="text-align:left;">Time</th>
-                            <th class="tc" title="Jogos">J</th>
-                            <th class="tc" title="Vitórias">V</th>
-                            <th class="tc" title="Empates">E</th>
-                            <th class="tc" title="Derrotas">D</th>
-                            <th class="tc" title="Gols Pró">GP</th>
-                            <th class="tc" title="Gols Contra">GC</th>
-                            <th class="tc" title="Saldo de Gols">SG</th>
-                            <th class="tc pts-col" title="Pontos">Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody>${linhas}</tbody>
-                </table>
-            </div>
-            <div class="terceiros-nota">
-                Critérios de classificação (ordem): Pontos → Saldo de Gols → Gols Pró → Cartões → Ranking FIFA.<br>
-                ⚖️ Indica possível desempate por cartão ou ranking FIFA (critérios não disponíveis automaticamente).
-            </div>
-        </div>`;
+            return palpitesMapeados;
         }
 
         // ══ 16AVOS DE FINAL ══════════════════════════════════════
@@ -5123,30 +5161,6 @@
         // com prioridade sobre o cálculo automático (tabela de grupos / melhores terceiros).
         // Estrutura: { "16a-01": { nomeA, codA, nomeB, codB }, ... }
         let cacheConfrontos16 = {};
-
-        // Resolve qual time ocupa uma vaga com base na tabela dos grupos
-        function resolverTime(fonte) {
-            // Confronto manual (admin define os dois lados direto, sem depender da tabela de grupos)
-            if (fonte.idJogo && fonte.lado) {
-                const manual = cacheConfrontos16[fonte.idJogo];
-                const nome = manual?.[`nome${fonte.lado}`];
-                if (nome) return { nome, cod: manual[`cod${fonte.lado}`] };
-            }
-            if (fonte.pos) {
-                // 1º ou 2º de um grupo
-                const tabela = calcularTabelaGrupo(fonte.grupo);
-                const t = tabela[fonte.pos - 1];
-                if (!t) return null; // grupo vazio
-                return t;
-            }
-            if (fonte.manual3) {
-                // 3º colocado definido manualmente pelo admin (FIFA bracket)
-                const atrib = cacheManual3[fonte.manual3];
-                if (!atrib) return null;
-                return { nome: atrib.nome, cod: atrib.cod, labelExtra: `3º Grp ${atrib.grupo}` };
-            }
-            return null;
-        }
 
         function renderizarMataMata() {
             const container = document.getElementById('mataMataConteudo');
@@ -5795,6 +5809,11 @@
             }));
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // 12. ADMIN — PAINÉIS MANUAIS DO MATA-MATA
+        // ═══════════════════════════════════════════════════════════
+
+
         // ══ PAINEL MANUAL 3ºS NOS 16AVOS ════════════════════════
 
         // Renderiza os 8 selects para o admin escolher qual 3º vai a cada vaga
@@ -6055,9 +6074,12 @@
         }
         window.limparManual3Individual = limparManual3Individual;
 
-        // ══════════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════
+        // 13. ABA ESTATÍSTICAS
+        // ═══════════════════════════════════════════════════════════
+
+
         // ══ ESTATÍSTICAS ════════════════════════════════════════════
-        // ══════════════════════════════════════════════════════════
 
         const EVO_FASES_ORDEM = ['16avos', 'oitavas', 'quartas', 'semis', 'final'];
         const EVO_FASES_LABEL = { '16avos': '16avos', oitavas: 'Oitavas', quartas: 'Quartas', semis: 'Semis', final: 'Final' };
@@ -7027,6 +7049,8 @@
             renderPerfilApostador();
         }
         window.renderizarEstatisticas = renderizarEstatisticas;
+
+
     </script>
 
     <script>
