@@ -2438,6 +2438,18 @@
                     </div>
                 </div>
 
+                <div class="grid" style="margin-top:16px;">
+                    <div class="card">
+                        <h2>🎯 Acertou Sozinho</h2>
+                        <div id="acertoSoloContainer"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2>🔱 Cravou Sozinho</h2>
+                        <div id="cravadaSoloContainer"></div>
+                    </div>
+                </div>
+
                 <div class="card" style="margin-top:16px;">
                     <h2>⚽ Perfil de Apostador</h2>
                     <div id="perfilApostadorContainer"></div>
@@ -6608,45 +6620,137 @@
                 .sort((a, b) => b.count - a.count);
         }
 
-        function renderZicaDoGrupo() {
-            const container = document.getElementById('zicaGrupoContainer');
+        // Helper compartilhado: formata o bloco de placar+fase de uma partida "solo" (zica, acerto ou cravada)
+        function formatarJogoSolo(jogo) {
+            const flagA = jogo.flagA ? `<img src="https://flagcdn.com/w40/${jogo.flagA}.png">` : '';
+            const flagB = jogo.flagB ? `<img src="https://flagcdn.com/w40/${jogo.flagB}.png">` : '';
+            return `
+                <div class="jogo-destaque-placar" style="margin-top:6px;">
+                    <span>${flagA}${jogo.nomeA}</span>
+                    <span style="color:var(--amarelo);">${jogo.placarA} x ${jogo.placarB}</span>
+                    <span>${jogo.nomeB}${flagB}</span>
+                </div>
+                <div class="jogo-destaque-fase">${jogo.faseLabel}</div>`;
+        }
+
+        // Renderiza um card genérico de "feito solo" (só uma pessoa cumpriu o critério, entre >=3 participantes)
+        function renderSoloCard({ containerId, lista, emoji, tituloRei, tagVazio, singularFn, pluralFn, destaque, outrosLabel }) {
+            const container = document.getElementById(containerId);
             if (!container) return;
 
-            const zicas = calcularZicas();
-            if (zicas.length === 0) {
-                container.innerHTML = '<div class="evo-vazio">🎉 Ninguém errou sozinho ainda — quando alguém vacila, tem sempre companhia!</div>';
+            if (lista.length === 0) {
+                container.innerHTML = `<div class="evo-vazio">${tagVazio}</div>`;
                 return;
             }
 
-            const maxZica = Math.max(...zicas.map(z => z.count));
-            const topEmpatados = zicas.filter(z => z.count === maxZica);
+            const maxCount = Math.max(...lista.map(z => z.count));
+            const topEmpatados = lista.filter(z => z.count === maxCount);
             const nomesTop = formatarListaNomes(topEmpatados.map(z => z.nome));
 
-            // Jogo mais recente de zica solo entre todos os empatados no topo
-            const todosJogosTop = topEmpatados.flatMap(z => z.jogos);
-            const ultimaZica = todosJogosTop[todosJogosTop.length - 1];
-            const flagA = ultimaZica.flagA ? `<img src="https://flagcdn.com/w40/${ultimaZica.flagA}.png">` : '';
-            const flagB = ultimaZica.flagB ? `<img src="https://flagcdn.com/w40/${ultimaZica.flagB}.png">` : '';
+            const blocosPorNome = topEmpatados.map(z => `
+                <div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.15);">
+                    <div style="font-weight:700;color:var(--amarelo);">${z.nome}</div>
+                    ${z.jogos.map(formatarJogoSolo).join('')}
+                </div>`).join('');
 
-            const outros = zicas.filter(z => z.count !== maxZica).map(z => `${z.nome} (${z.count})`).join(', ');
-            const descTop = topEmpatados.length > 1
-                ? `${nomesTop} empatam como quem mais errou sozinho(a): ${maxZica}x cada, enquanto o resto da galera acertava.`
-                : `${nomesTop} já errou sozinho(a) em ${maxZica} jogo${maxZica !== 1 ? 's' : ''}, enquanto o resto da galera acertava.`;
+            const outros = lista.filter(z => z.count !== maxCount).map(z => `${z.nome} (${z.count})`).join(', ');
+            const descTop = topEmpatados.length > 1 ? pluralFn(nomesTop, maxCount) : singularFn(nomesTop, maxCount);
 
             container.innerHTML = `
-                <div class="jogo-destaque destaque-low">
-                    <span class="jogo-destaque-tag">😬 Rei(nha) da Zica: ${nomesTop}</span>
-                    <div class="jogo-destaque-placar">
-                        <span>${flagA}${ultimaZica.nomeA}</span>
-                        <span style="color:var(--amarelo);">${ultimaZica.placarA} x ${ultimaZica.placarB}</span>
-                        <span>${ultimaZica.nomeB}${flagB}</span>
-                    </div>
-                    <div class="jogo-destaque-fase">${ultimaZica.faseLabel} · foi o(a) único(a) a errar</div>
-                    <div class="jogo-destaque-stats">
+                <div class="jogo-destaque ${destaque}">
+                    <span class="jogo-destaque-tag">${emoji} ${tituloRei}: ${nomesTop}</span>
+                    ${blocosPorNome}
+                    <div class="jogo-destaque-stats" style="margin-top:10px;">
                         <span>${descTop}</span>
                     </div>
                 </div>` +
-                (outros ? `<div style="font-size:10px;color:var(--text-dim);margin-top:6px;">Outras zicas solo: ${outros}</div>` : '');
+                (outros ? `<div style="font-size:10px;color:var(--text-dim);margin-top:6px;">${outrosLabel}: ${outros}</div>` : '');
+        }
+
+        function renderZicaDoGrupo() {
+            renderSoloCard({
+                containerId: 'zicaGrupoContainer',
+                lista: calcularZicas(),
+                emoji: '😬',
+                tituloRei: 'Rei(nha) da Zica',
+                tagVazio: '🎉 Ninguém errou sozinho ainda — quando alguém vacila, tem sempre companhia!',
+                destaque: 'destaque-low',
+                outrosLabel: 'Outras zicas solo',
+                singularFn: (nomes, n) => `${nomes} já errou sozinho(a) em ${n} jogo${n !== 1 ? 's' : ''}, enquanto o resto da galera acertava.`,
+                pluralFn: (nomes, n) => `${nomes} empatam como quem mais errou sozinho(a): ${n}x cada, enquanto o resto da galera acertava.`
+            });
+        }
+
+        // ── Acertou Sozinho (foi o(a) único(a) a acertar, seja cravada ou resultado) ─
+        function calcularAcertosSolo() {
+            const historico = construirHistoricoApurado();
+            const acertos = {};
+            integrantes.forEach(nome => { acertos[nome] = { count: 0, jogos: [] }; });
+
+            historico.forEach(jogo => {
+                if (jogo.participantes.length < 3) return;
+                const acertantes = jogo.participantes.filter(p => p.tipo === 'cheio' || p.tipo === 'parcial');
+                if (acertantes.length === 1) {
+                    const nome = acertantes[0].nome;
+                    acertos[nome].count++;
+                    acertos[nome].jogos.push(jogo);
+                }
+            });
+
+            return integrantes
+                .map(nome => ({ nome, count: acertos[nome].count, jogos: acertos[nome].jogos }))
+                .filter(z => z.count > 0)
+                .sort((a, b) => b.count - a.count);
+        }
+
+        function renderAcertoSolo() {
+            renderSoloCard({
+                containerId: 'acertoSoloContainer',
+                lista: calcularAcertosSolo(),
+                emoji: '🎯',
+                tituloRei: 'Rei(nha) do Faro',
+                tagVazio: '🤷 Ninguém acertou sozinho ainda — ou todo mundo vai junto, ou todo mundo erra junto.',
+                destaque: 'destaque-top',
+                outrosLabel: 'Outros acertos solo',
+                singularFn: (nomes, n) => `${nomes} já foi o(a) único(a) a acertar em ${n} jogo${n !== 1 ? 's' : ''}, enquanto o resto da galera vacilava.`,
+                pluralFn: (nomes, n) => `${nomes} empatam como quem mais acertou sozinho(a): ${n}x cada, enquanto o resto da galera vacilava.`
+            });
+        }
+
+        // ── Cravou Sozinho (foi o(a) único(a) a cravar o placar exato) ──
+        function calcularCravadasSolo() {
+            const historico = construirHistoricoApurado();
+            const cravadas = {};
+            integrantes.forEach(nome => { cravadas[nome] = { count: 0, jogos: [] }; });
+
+            historico.forEach(jogo => {
+                if (jogo.participantes.length < 3) return;
+                const cravadores = jogo.participantes.filter(p => p.tipo === 'cheio');
+                if (cravadores.length === 1) {
+                    const nome = cravadores[0].nome;
+                    cravadas[nome].count++;
+                    cravadas[nome].jogos.push(jogo);
+                }
+            });
+
+            return integrantes
+                .map(nome => ({ nome, count: cravadas[nome].count, jogos: cravadas[nome].jogos }))
+                .filter(z => z.count > 0)
+                .sort((a, b) => b.count - a.count);
+        }
+
+        function renderCravadaSolo() {
+            renderSoloCard({
+                containerId: 'cravadaSoloContainer',
+                lista: calcularCravadasSolo(),
+                emoji: '🔱',
+                tituloRei: 'Rei(nha) da Cravada',
+                tagVazio: '🎲 Ninguém cravou sozinho ainda — quando alguém crava, tem companhia.',
+                destaque: 'destaque-top',
+                outrosLabel: 'Outras cravadas solo',
+                singularFn: (nomes, n) => `${nomes} já foi o(a) único(a) a cravar o placar em ${n} jogo${n !== 1 ? 's' : ''}, enquanto o resto da galera não chegava lá.`,
+                pluralFn: (nomes, n) => `${nomes} empatam como quem mais cravou sozinho(a): ${n}x cada, enquanto o resto da galera não chegava lá.`
+            });
         }
 
         // ── Conquistas (badges dinâmicos) ───────────────────────────
@@ -6918,6 +7022,8 @@
             renderComparativoFases();
             renderJogoDaRodada();
             renderZicaDoGrupo();
+            renderAcertoSolo();
+            renderCravadaSolo();
             renderPerfilApostador();
         }
         window.renderizarEstatisticas = renderizarEstatisticas;
