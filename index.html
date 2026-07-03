@@ -2290,6 +2290,7 @@
             cursor: not-allowed;
         }
     </style>
+
 </head>
 
 <body>
@@ -2707,16 +2708,7 @@
                          <div id="manual3Container"></div>
                      </div>
 
-                     <!-- ══ CONFRONTOS MANUAIS DOS 16AVOS ══ -->
-
-                     <div class="card" id="cardConfrontos16" style="margin-bottom:16px;">
-                         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                             <h2 style="margin:0; font-size:16px;">⚔️ 4. Confrontos Manuais — 16avos</h2>
-                             <button onclick="salvarConfrontos16()" style="background:var(--verde); color:white; border:none; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:700;">💾 Salvar Confrontos</button>
-                         </div>
-                         <p style="font-size:12px;color:#64748b;margin-bottom:12px;">Opcional: defina manualmente os dois times de qualquer confronto dos 16avos. Isso tem prioridade sobre o cálculo automático (tabela de grupos / melhores terceiros) — útil pra travar o confronto oficial e evitar erro de cálculo.</p>
-                         <div id="confrontos16Container"></div>
-                     </div>
+                     <!-- ══ CONFRONTOS MANUAIS DOS 16AVOS (card removido da UI — dados salvos continuam ativos via cacheConfrontos16) ══ -->
  
                      <!-- ══ SINCRONIZAÇÃO API ══ -->
                      <div class="card" style="margin-bottom:16px;" id="cardApiSync">
@@ -2990,10 +2982,47 @@
         window.addEventListener('load', inicializarApp);
     </script>
 
+
     <!-- =====================================================
      LÓGICA DA APLICAÇÃO
      ===================================================== -->
     <script>
+        // ══════════════════════════════════════════════════════════
+        // ÍNDICE DESTE ARQUIVO (use Ctrl+F e cole o nome da seção)
+        // ══════════════════════════════════════════════════════════
+        //  1. DADOS DAS PARTIDAS (FASE DE GRUPOS)
+        //  2. NÚCLEO / INICIALIZAÇÃO E NAVEGAÇÃO ENTRE ABAS
+        //  3. RENDERIZAÇÃO DE LISTAS DE JOGOS (ADMIN / PÚBLICO)
+        //  4. PARSER DE TEXTO / IMPORTAÇÃO DE PALPITES COLADOS
+        //  5. SELEÇÃO DE FASE E INPUTS DE RESULTADOS (ADMIN)
+        //  6. CÁLCULO DE RESULTADOS E RANKING GERAL
+        //  7. CONTROLE DE FASE MANUAL
+        //  8. FASE ATUAL DO BOLÃO
+        //  9. SINCRONIZAÇÃO VIA CLOUDFLARE WORKER
+        // 10. MONITOR DE BANCO / FERRAMENTAS ADMIN
+        // 11. EXPLORADOR DE PALPITES
+        // 12. GRUPOS
+        // 13. MELHORES TERCEIROS
+        // 14. 16AVOS DE FINAL
+        // 15. PALPITES MATA-MATA (ADMIN)
+        // 16. PAINEL MANUAL 3ºS NOS 16AVOS
+        // 17. PAINEL CONFRONTOS MANUAIS 16AVOS
+        // 18. ESTATÍSTICAS
+        //       ├─ Gráfico de Evolução do Ranking
+        //       ├─ Comparativo de Acertos entre Integrantes
+        //       ├─ Sequências (Streaks) de Acertos/Erros
+        //       ├─ Comparativo por Fase (Grupos x Mata-Mata)
+        //       ├─ Zica do Grupo
+        //       ├─ Conquistas / Badges
+        //       ├─ Jogo da Rodada
+        //       ├─ Perfil do Apostador
+        //       └─ Orquestração — renderiza a aba Estatísticas inteira
+        // ══════════════════════════════════════════════════════════
+
+        // ══════════════════════════════════════════════════════════
+        // ══ DADOS DAS PARTIDAS (FASE DE GRUPOS) ═══════════════════════
+        // ══════════════════════════════════════════════════════════
+
         // Senha gerenciada no Firestore (config/admin → campo "senha")
         let usuarioAutenticado = false;
 
@@ -3083,6 +3112,10 @@
         ];
 
         // ── Inicialização (chamada pelo módulo Firebase após carregar) ──
+        // ══════════════════════════════════════════════════════════
+        // ══ NÚCLEO / INICIALIZAÇÃO E NAVEGAÇÃO ENTRE ABAS ═════════════
+        // ══════════════════════════════════════════════════════════
+
         async function inicializarApp() {
             renderizarListaJogosAdmin();
             renderizarListaJogosPublico();
@@ -3297,6 +3330,10 @@
         window.fazerLogout = fazerLogout;
 
         // ── Renderização dos jogos ────────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        // ══ RENDERIZAÇÃO DE LISTAS DE JOGOS (ADMIN / PÚBLICO) ═════════
+        // ══════════════════════════════════════════════════════════
+
         function renderizarListaJogosAdmin() {
             const container = document.getElementById('listaJogosPainel');
             container.innerHTML = '';
@@ -3382,6 +3419,10 @@
 
         // ── Palpites ──────────────────────────────────────────────
         // ── Utilitários para matching flexível de times ────────────
+        // ══════════════════════════════════════════════════════════
+        // ══ PARSER DE TEXTO / IMPORTAÇÃO DE PALPITES COLADOS ══════════
+        // ══════════════════════════════════════════════════════════
+
         function normalizarTexto(str) {
             // Remove acentos e converte para minúsculas
             return str.toLowerCase()
@@ -3632,6 +3673,10 @@
         const ordemFasesAll = ['grupos', '16avos', 'oitavas', 'quartas', 'semis', 'final'];
         let fasePalpitesAtiva = 'grupos';
 
+        // ══════════════════════════════════════════════════════════
+        // ══ SELEÇÃO DE FASE E INPUTS DE RESULTADOS (ADMIN) ════════════
+        // ══════════════════════════════════════════════════════════
+
         function selecionarFasePalpites(fase) {
             fasePalpitesAtiva = fase;
 
@@ -3776,6 +3821,10 @@
         window.zerarApenasResultadosReais = zerarApenasResultadosReais;
 
         // ── Ranking ───────────────────────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        // ══ CÁLCULO DE RESULTADOS E RANKING GERAL ═════════════════════
+        // ══════════════════════════════════════════════════════════
+
         function calcularResultados() {
             const faseAtual = determinarFaseAtual();
             let ranking = [];
@@ -4225,7 +4274,7 @@
         window.forceSyncAgora = forceSyncAgora;
 
         // ═════════════════════════════════════════════════════════
-
+        // ══ MONITOR DE BANCO / FERRAMENTAS ADMIN ═══════════════════
         // ═════════════════════════════════════════════════════════
 
         function atualizarMonitorBanco() {
@@ -6002,6 +6051,7 @@
         const EVO_FASES_LABEL = { '16avos': '16avos', oitavas: 'Oitavas', quartas: 'Quartas', semis: 'Semis', final: 'Final' };
 
         // Cores estáveis por integrante (mesma ordem do array `integrantes`)
+        // ── Gráfico de Evolução do Ranking ────────────────────────
         function corIntegrante(nome) {
             const idx = integrantes.indexOf(nome);
             const hue = Math.round((idx * 360) / Math.max(integrantes.length, 1));
@@ -6156,6 +6206,7 @@
         // ── 1.5) Ranking de Acertos (comparativo geral + taxa de erro) ──
         let modoComparativoAtual = 'geral';
 
+        // ── Comparativo de Acertos entre Integrantes ──────────────
         function mudarModoComparativo(modo) {
             modoComparativoAtual = modo;
             document.querySelectorAll('.comp-subtab').forEach(btn => {
@@ -6343,6 +6394,7 @@
         }
 
         // ── Histórico cronológico apurado (base p/ sequência e zica) ──
+        // ── Sequências (Streaks) de Acertos/Erros ─────────────────
         function construirHistoricoApurado() {
             const historico = [];
 
@@ -6458,6 +6510,7 @@
         }
 
         // ── Grupos vs Mata-mata (comparativo por fase) ─────────────
+        // ── Comparativo por Fase (Grupos x Mata-Mata) ─────────────
         function calcularComparativoPorFase() {
             return integrantes.map(nome => {
                 let grupoTotal = 0, grupoAcertos = 0;
@@ -6533,6 +6586,7 @@
         }
 
         // ── Zica do Grupo (erro solitário num jogo) ─────────────────
+        // ── Zica do Grupo ─────────────────────────────────────────
         function calcularZicas() {
             const historico = construirHistoricoApurado();
             const zicas = {};
@@ -6596,6 +6650,7 @@
         }
 
         // ── Conquistas (badges dinâmicos) ───────────────────────────
+        // ── Conquistas / Badges ───────────────────────────────────
         function calcularConquistas() {
             const badges = [];
 
@@ -6676,6 +6731,7 @@
         }
 
         // ── 2) Jogo da Rodada (mais e menos acertado) ───────────────
+        // ── Jogo da Rodada ────────────────────────────────────────
         function calcularEstatisticasJogos() {
             const lista = [];
 
@@ -6781,6 +6837,7 @@
         }
 
         // ── 3) Perfil de Apostador (goleadas vs. conservador) ───────
+        // ── Perfil do Apostador ───────────────────────────────────
         function calcularPerfilApostador() {
             const perfis = integrantes.map(nome => {
                 let totalGols = 0, qtd = 0;
@@ -6852,6 +6909,7 @@
         }
 
         // ── Renderiza tudo ───────────────────────────────────────────
+        // ── Orquestração — renderiza a aba Estatísticas inteira ───
         function renderizarEstatisticas() {
             renderEvolucaoChart();
             renderComparativoAcertos();
