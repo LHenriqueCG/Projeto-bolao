@@ -4414,8 +4414,8 @@
                 const tB = resolverTimeKO(jogo.fonteB);
                 const r = resultados[jogo.id];
 
-                const nomeA = tA ? tA.nome : jogo.labelA;
-                const nomeB = tB ? tB.nome : jogo.labelB;
+                const nomeA = tA ? tA.nome : labelVagaKO(jogo.fonteA, jogo.labelA);
+                const nomeB = tB ? tB.nome : labelVagaKO(jogo.fonteB, jogo.labelB);
                 const codA = tA?.cod;
                 const codB = tB?.cod;
 
@@ -4722,8 +4722,8 @@
             const real = (cacheResultadosKO[fase] || {})[idJogo];
             const tA = resolverTimeKO(jogo.fonteA);
             const tB = resolverTimeKO(jogo.fonteB);
-            const nA = tA ? tA.nome : jogo.labelA;
-            const nB = tB ? tB.nome : jogo.labelB;
+            const nA = tA ? tA.nome : labelVagaKO(jogo.fonteA, jogo.labelA);
+            const nB = tB ? tB.nome : labelVagaKO(jogo.fonteB, jogo.labelB);
             const codA = tA?.cod, codB = tB?.cod;
 
             const titulo = `🔍 ${codA ? `<img src="https://flagcdn.com/w40/${codA}.png" style="width:20px;height:14px;border-radius:2px;vertical-align:middle;margin:0 2px;">` : ''}
@@ -5079,8 +5079,8 @@
 
                 const tA = resolverTimeKO(j.fonteA);
                 const tB = resolverTimeKO(j.fonteB);
-                const nA = tA ? tA.nome : j.labelA;
-                const nB = tB ? tB.nome : j.labelB;
+                const nA = tA ? tA.nome : labelVagaKO(j.fonteA, j.labelA);
+                const nB = tB ? tB.nome : labelVagaKO(j.fonteB, j.labelB);
                 const bA = tA ? `<img class="flag-img" src="https://flagcdn.com/w40/${tA.cod}.png" alt="${nA}">` : '';
                 const bB = tB ? `<img class="flag-img" src="https://flagcdn.com/w40/${tB.cod}.png" alt="${nB}">` : '';
 
@@ -5256,8 +5256,8 @@
                     const r = resF[j.id];
                     const tA = resolverTimeKO(j.fonteA);
                     const tB = resolverTimeKO(j.fonteB);
-                    const nA = tA ? tA.nome : j.labelA;
-                    const nB = tB ? tB.nome : j.labelB;
+                    const nA = tA ? tA.nome : labelVagaKO(j.fonteA, j.labelA);
+                    const nB = tB ? tB.nome : labelVagaKO(j.fonteB, j.labelB);
                     const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
                     const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
                     const placar = r
@@ -5281,8 +5281,8 @@
                 const tA = resolverTimeKO(j.fonteA);
                 const tB = resolverTimeKO(j.fonteB);
                 const r = resultados[j.id];
-                const nA = tA ? tA.nome : j.labelA;
-                const nB = tB ? tB.nome : j.labelB;
+                const nA = tA ? tA.nome : labelVagaKO(j.fonteA, j.labelA);
+                const nB = tB ? tB.nome : labelVagaKO(j.fonteB, j.labelB);
                 const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
                 const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
                 const placar = r
@@ -5388,6 +5388,27 @@
             return null;
         }
 
+        // Retorna um rótulo amigável para uma "vaga" do mata-mata que ainda não foi decidida.
+        // Em vez do texto genérico "Vencedor Oit-3", tenta montar "Time1 ou Time2" com os
+        // times que efetivamente ainda disputam aquela vaga (baseado no jogo anterior).
+        // Se o jogo anterior também não estiver decidido, cai no texto original (labelFallback).
+        function labelVagaKO(fonte, labelFallback) {
+            const t = resolverTimeKO(fonte);
+            if (t) return t.nome;
+            if (fonte && fonte.ko) {
+                const jogoDaFase = fonte.id16a
+                    ? fasesKO[fonte.ko].jogos.find(j => j.id === fonte.id16a)
+                    : fasesKO[fonte.ko].jogos[fonte.idx];
+                if (jogoDaFase) {
+                    const nomeA = labelVagaKO(jogoDaFase.fonteA, jogoDaFase.labelA);
+                    const nomeB = labelVagaKO(jogoDaFase.fonteB, jogoDaFase.labelB);
+                    if (nomeA && nomeB) return `${nomeA} ou ${nomeB}`;
+                }
+            }
+            return labelFallback || null;
+        }
+        window.labelVagaKO = labelVagaKO;
+
         function popularSelectIntegranteKO() {
             // Integrante agora é o #integrante compartilhado — apenas atualiza os tabs de fase
             atualizarBotoesFaseKO();
@@ -5444,8 +5465,8 @@
             function jogoHtml(jogo, isPalpite) {
                 const tA = resolverTimeKO(jogo.fonteA);
                 const tB = resolverTimeKO(jogo.fonteB);
-                const nomeA = tA ? tA.nome : jogo.labelA;
-                const nomeB = tB ? tB.nome : jogo.labelB;
+                const nomeA = tA ? tA.nome : labelVagaKO(jogo.fonteA, jogo.labelA);
+                const nomeB = tB ? tB.nome : labelVagaKO(jogo.fonteB, jogo.labelB);
                 const flagA = tA ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img">` : '';
                 const flagB = tB ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img">` : '';
                 const bloqueado = !tA || !tB;
