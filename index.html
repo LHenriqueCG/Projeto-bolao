@@ -4372,13 +4372,39 @@
         }
         window.atualizarFasePublica = atualizarFasePublica;
 
+        // Converte "DD/MM · Dia · HHhMM" em um número ordenável (mês, dia, hora, minuto).
+        // Retorna null se o jogo não tiver dataHora definida (ex: quartas/semis/final sem data marcada ainda).
+        function parseOrdemDataHora(dataHora) {
+            if (!dataHora) return null;
+            const partes = dataHora.split(' · ');
+            if (partes.length < 3) return null;
+            const [dia, mes] = partes[0].split('/').map(Number);
+            const horaMatch = partes[2].match(/(\d+)h(\d+)/);
+            if (!dia || !mes || !horaMatch) return null;
+            return mes * 1000000 + dia * 10000 + Number(horaMatch[1]) * 100 + Number(horaMatch[2]);
+        }
+
+        // Retorna uma CÓPIA da lista de jogos ordenada cronologicamente por dataHora, para exibição.
+        // Não deve ser usada para o array original de fasesKO, pois as fases seguintes (quartas/semis/final)
+        // referenciam os jogos da fase anterior pela POSIÇÃO no array (fonte.idx), que segue o chaveamento oficial.
+        function ordenarJogosPorData(jogos) {
+            return [...jogos].sort((a, b) => {
+                const oa = parseOrdemDataHora(a.dataHora);
+                const ob = parseOrdemDataHora(b.dataHora);
+                if (oa == null && ob == null) return 0;
+                if (oa == null) return 1;
+                if (ob == null) return -1;
+                return oa - ob;
+            });
+        }
+
         // Renderiza os jogos do mata-mata no card público de placares
         function renderizarPlacaresKOPublico(fase) {
             const container = document.getElementById('listaJogosKOPublico');
             if (!container) return;
             container.innerHTML = '';
 
-            const jogos = fasesKO[fase]?.jogos || [];
+            const jogos = ordenarJogosPorData(fasesKO[fase]?.jogos || []);
             const resultados = cacheResultadosKO[fase] || {};
 
             let ultimaData = '';
@@ -5406,7 +5432,7 @@
             const nome = document.getElementById('integrante').value;
             const container = document.getElementById('koJogosContainer');
             const fase = koFaseAtiva;
-            const jogos = fasesKO[fase].jogos;
+            const jogos = ordenarJogosPorData(fasesKO[fase].jogos);
             
             if (!nome) {
                 container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:8px 0;">Selecione um integrante para ver os jogos.</div>';
