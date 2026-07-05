@@ -1378,7 +1378,7 @@
             line-height: 1.4;
         }
 
-        /* ══ GRUPOS VS MATA-MATA ══════════════════════════════ */
+        /* ══ DESEMPENHO POR FASE ══════════════════════════════ */
         .fase-comp-linha {
             margin-bottom: 12px;
         }
@@ -2433,7 +2433,7 @@
                     </div>
 
                     <div class="card">
-                        <h2>📊 Grupos vs Mata-mata</h2>
+                        <h2>📊 Desempenho por Fase</h2>
                         <div id="comparativoFasesContainer"></div>
                     </div>
                 </div>
@@ -5221,11 +5221,11 @@
                         const tA = resolverTime(conf.fonteA);
                         const tB = resolverTime(conf.fonteB);
                         const ladoA = tA
-                            ? `<div class="mm-time mm-esq"><span class="mm-nome">${tA.nome}</span><img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">${tA.labelExtra ? `<span class="mm-extra">${tA.labelExtra}</span>` : ''}</div>`
-                            : `<div class="mm-time mm-esq mm-pendente"><span class="mm-nome">${conf.labelA}</span></div>`;
+                            ? `<div class="mm-time mm-esq"><span class="mm-nome" title="${tA.nome}">${tA.nome}</span><img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">${tA.labelExtra ? `<span class="mm-extra">${tA.labelExtra}</span>` : ''}</div>`
+                            : `<div class="mm-time mm-esq mm-pendente"><span class="mm-nome" title="${conf.labelA}">${conf.labelA}</span></div>`;
                         const ladoB = tB
-                            ? `<div class="mm-time mm-dir">${tB.labelExtra ? `<span class="mm-extra">${tB.labelExtra}</span>` : ''}<span class="mm-nome">${tB.nome}</span><img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag"></div>`
-                            : `<div class="mm-time mm-dir mm-pendente"><span class="mm-nome">${conf.labelB}</span></div>`;
+                            ? `<div class="mm-time mm-dir">${tB.labelExtra ? `<span class="mm-extra">${tB.labelExtra}</span>` : ''}<span class="mm-nome" title="${tB.nome}">${tB.nome}</span><img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag"></div>`
+                            : `<div class="mm-time mm-dir mm-pendente"><span class="mm-nome" title="${conf.labelB}">${conf.labelB}</span></div>`;
                         const temPalpites = tA && tB;
                         return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}"${temPalpites ? ` style="cursor:pointer;" onclick="abrirExplorerPorJogoKO('16avos','${conf.id}')" title="Ver palpites de todos para este jogo"` : ''}>${ladoA}<div class="mm-vs">VS</div>${ladoB}${temPalpites ? '<div class="jogo-clicavel-hint">👥</div>' : ''}</div>`;
                     }).join('');
@@ -5279,9 +5279,9 @@
                     const infoF = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
                     return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}" style="opacity:0.65;font-size:11px;${temPalpites ? 'cursor:pointer;' : ''}"${temPalpites ? ` onclick="abrirExplorerPorJogoKO('${f}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
                         ${infoF}
-                        <div class="mm-time mm-esq"><span class="mm-nome" style="font-size:10px;">${nA}</span>${fA}</div>
+                        <div class="mm-time mm-esq"><span class="mm-nome" style="font-size:10px;" title="${nA}">${nA}</span>${fA}</div>
                         ${placar}
-                        <div class="mm-time mm-dir">${fB}<span class="mm-nome" style="font-size:10px;">${nB}</span></div>
+                        <div class="mm-time mm-dir">${fB}<span class="mm-nome" style="font-size:10px;" title="${nB}">${nB}</span></div>
                     </div>`;
                 }).join('');
                 resumoFasesAnteriores += `<details style="margin-bottom:16px;">
@@ -5306,9 +5306,9 @@
                 const info = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
                 return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}"${temPalpites ? ` style="cursor:pointer;" onclick="abrirExplorerPorJogoKO('${fase}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
                     ${info}
-                    <div class="mm-time mm-esq"><span class="mm-nome">${nA}</span>${fA}</div>
+                    <div class="mm-time mm-esq"><span class="mm-nome" title="${nA}">${nA}</span>${fA}</div>
                     ${placar}
-                    <div class="mm-time mm-dir">${fB}<span class="mm-nome">${nB}</span></div>
+                    <div class="mm-time mm-dir">${fB}<span class="mm-nome" title="${nB}">${nB}</span></div>
                     ${temPalpites ? '<div class="jogo-clicavel-hint">👥</div>' : ''}
                 </div>`;
             }).join('');
@@ -5334,9 +5334,9 @@
                     const label3 = j.terceiro ? '<div class="mm-card-info" style="opacity:0.6;">🥉 Disputa do 3º Lugar</div>' : '';
                     return `<div class="mm-card" style="opacity:0.6;">
                         ${info}${label3}
-                        <div class="mm-time mm-esq"><span class="mm-nome">${nA}</span>${fA}</div>
+                        <div class="mm-time mm-esq"><span class="mm-nome" title="${nA}">${nA}</span>${fA}</div>
                         <div class="mm-vs">VS</div>
-                        <div class="mm-time mm-dir">${fB}<span class="mm-nome">${nB}</span></div>
+                        <div class="mm-time mm-dir">${fB}<span class="mm-nome" title="${nB}">${nB}</span></div>
                     </div>`;
                 }).join('');
                 const emojiF = { semis: '🏆', final: '🥇' }[f] || '📅';
@@ -6650,40 +6650,47 @@
         }
 
         // ── Grupos vs Mata-mata (comparativo por fase) ─────────────
-        // ── Comparativo por Fase (Grupos x Mata-Mata) ─────────────
+        // ── Comparativo por Fase (Grupos, 16avos, Oitavas, Quartas, Semis, Final) ─────────────
+        const FASES_COMPARATIVO = [
+            { id: 'grupos', label: '🏟️ Grupos', cor: 'var(--azul-med)' },
+            { id: '16avos', label: '🥊 16avos', cor: '#7e57c2' },
+            { id: 'oitavas', label: '⚔️ Oitavas', cor: '#ef6c00' },
+            { id: 'quartas', label: '🏆 Quartas', cor: 'var(--amarelo-esc)' },
+            { id: 'semis', label: '🥈 Semis', cor: '#00897b' },
+            { id: 'final', label: '🥇 Final', cor: 'var(--danger)' },
+        ];
+
         function calcularComparativoPorFase() {
             return integrantes.map(nome => {
-                let grupoTotal = 0, grupoAcertos = 0;
-                const palpiteDoJogador = cachePalpites[nome];
-                if (palpiteDoJogador) {
-                    for (let idJogo in cacheResultados) {
-                        const p = palpiteDoJogador[idJogo];
-                        if (!p) continue;
-                        grupoTotal++;
-                        if (classificarPalpite(p, cacheResultados[idJogo]) !== 'erro') grupoAcertos++;
+                const porFase = FASES_COMPARATIVO.map(f => {
+                    let total = 0, acertos = 0;
+                    if (f.id === 'grupos') {
+                        const palpiteDoJogador = cachePalpites[nome];
+                        if (palpiteDoJogador) {
+                            for (let idJogo in cacheResultados) {
+                                const p = palpiteDoJogador[idJogo];
+                                if (!p) continue;
+                                total++;
+                                if (classificarPalpite(p, cacheResultados[idJogo]) !== 'erro') acertos++;
+                            }
+                        }
+                    } else {
+                        const resKO = cacheResultadosKO[f.id];
+                        const palpitesKO = cachePalpitesKO[`${nome}_${f.id}`];
+                        if (resKO && palpitesKO) {
+                            for (let idJogo in resKO) {
+                                const p = palpitesKO[idJogo];
+                                if (!p) continue;
+                                total++;
+                                if (classificarPalpiteKO(p, resKO[idJogo]) !== 'erro') acertos++;
+                            }
+                        }
                     }
-                }
-
-                let koTotal = 0, koAcertos = 0;
-                EVO_FASES_ORDEM.forEach(fase => {
-                    const resKO = cacheResultadosKO[fase];
-                    if (!resKO) return;
-                    const palpitesKO = cachePalpitesKO[`${nome}_${fase}`];
-                    if (!palpitesKO) return;
-                    for (let idJogo in resKO) {
-                        const p = palpitesKO[idJogo];
-                        if (!p) continue;
-                        koTotal++;
-                        if (classificarPalpiteKO(p, resKO[idJogo]) !== 'erro') koAcertos++;
-                    }
+                    return { id: f.id, label: f.label, cor: f.cor, total, acertos, pct: total > 0 ? acertos / total : null };
                 });
-
-                return {
-                    nome, grupoTotal, grupoAcertos, koTotal, koAcertos,
-                    grupoPct: grupoTotal > 0 ? grupoAcertos / grupoTotal : null,
-                    koPct: koTotal > 0 ? koAcertos / koTotal : null
-                };
-            }).filter(d => d.grupoTotal > 0 || d.koTotal > 0);
+                const totalGeral = porFase.reduce((s, f) => s + f.total, 0);
+                return { nome, porFase, totalGeral };
+            }).filter(d => d.totalGeral > 0);
         }
 
         function renderComparativoFases() {
@@ -6692,37 +6699,39 @@
 
             const dados = calcularComparativoPorFase();
             if (dados.length === 0) {
-                container.innerHTML = '<div class="evo-vazio">⏳ Aguardando jogos apurados nas duas fases.</div>';
+                container.innerHTML = '<div class="evo-vazio">⏳ Aguardando jogos apurados nas fases.</div>';
                 return;
             }
 
-            dados.sort((a, b) => (b.grupoPct ?? -1) + (b.koPct ?? -1) - ((a.grupoPct ?? -1) + (a.koPct ?? -1)));
+            // Ordena pela média das taxas de acerto entre as fases já apuradas por cada um
+            dados.sort((a, b) => {
+                const fasesA = a.porFase.filter(f => f.pct !== null);
+                const fasesB = b.porFase.filter(f => f.pct !== null);
+                const mediaA = fasesA.length ? fasesA.reduce((s, f) => s + f.pct, 0) / fasesA.length : -1;
+                const mediaB = fasesB.length ? fasesB.reduce((s, f) => s + f.pct, 0) / fasesB.length : -1;
+                return mediaB - mediaA;
+            });
 
             const linhas = dados.map(d => {
-                const grupoPctTxt = d.grupoPct !== null ? `${Math.round(d.grupoPct * 100)}%` : '—';
-                const koPctTxt = d.koPct !== null ? `${Math.round(d.koPct * 100)}%` : '—';
-                const grupoWidth = d.grupoPct !== null ? Math.round(d.grupoPct * 100) : 0;
-                const koWidth = d.koPct !== null ? Math.round(d.koPct * 100) : 0;
+                const itens = d.porFase.filter(f => f.total > 0).map(f => {
+                    const pctTxt = `${Math.round(f.pct * 100)}%`;
+                    const width = Math.round(f.pct * 100);
+                    return `
+                        <div class="fase-comp-item">
+                            <span class="fase-comp-label">${f.label}</span>
+                            <div class="comp-bar-wrap"><div class="comp-bar-seg" style="width:${width}%;background:${f.cor};"></div></div>
+                            <span class="fase-comp-pct" style="color:${f.cor};">${pctTxt}</span>
+                        </div>`;
+                }).join('');
                 return `
                     <div class="fase-comp-linha">
                         <div class="fase-comp-nome">${d.nome}</div>
-                        <div class="fase-comp-barras">
-                            <div class="fase-comp-item">
-                                <span class="fase-comp-label">🏟️ Grupos</span>
-                                <div class="comp-bar-wrap"><div class="comp-bar-seg" style="width:${grupoWidth}%;background:var(--azul-med);"></div></div>
-                                <span class="fase-comp-pct" style="color:var(--azul-med);">${grupoPctTxt}</span>
-                            </div>
-                            <div class="fase-comp-item">
-                                <span class="fase-comp-label">⚔️ Mata-mata</span>
-                                <div class="comp-bar-wrap"><div class="comp-bar-seg" style="width:${koWidth}%;background:var(--amarelo-esc);"></div></div>
-                                <span class="fase-comp-pct" style="color:var(--amarelo);">${koPctTxt}</span>
-                            </div>
-                        </div>
+                        <div class="fase-comp-barras">${itens}</div>
                     </div>`;
             }).join('');
 
             container.innerHTML = linhas +
-                `<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">% = taxa de acerto (exato + resultado) em cada fase, sobre os palpites já apurados.</div>`;
+                `<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">% = taxa de acerto (exato + resultado) em cada fase, sobre os palpites já apurados. Fases ainda sem jogos apurados não aparecem.</div>`;
         }
 
         // ── Zica do Grupo (erro solitário num jogo) ─────────────────
