@@ -2114,11 +2114,23 @@
             border-radius: 10px;
             padding: 12px 10px;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 8px;
             transition: border-color 0.2s, background 0.2s;
             position: relative;
             overflow: hidden;
+        }
+
+        .mm-card-info {
+            flex: 0 0 100%;
+            order: -1;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding-bottom: 4px;
+            opacity: 0.8;
         }
 
         .mm-card::before {
@@ -5264,7 +5276,9 @@
                         ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}${r.pror1 != null ? `<div style="font-size:9px;color:var(--text-dim);">pror. ${r.pror1}×${r.pror2}</div>` : ''}${r.pen1 != null ? `<div style="font-size:9px;color:var(--text-dim);">pên. ${r.pen1}×${r.pen2}</div>` : ''}</div>`
                         : '<div class="mm-vs">VS</div>';
                     const temPalpites = tA && tB;
+                    const infoF = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
                     return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}" style="opacity:0.65;font-size:11px;${temPalpites ? 'cursor:pointer;' : ''}"${temPalpites ? ` onclick="abrirExplorerPorJogoKO('${f}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
+                        ${infoF}
                         <div class="mm-time mm-esq"><span class="mm-nome" style="font-size:10px;">${nA}</span>${fA}</div>
                         ${placar}
                         <div class="mm-time mm-dir">${fB}<span class="mm-nome" style="font-size:10px;">${nB}</span></div>
@@ -5289,7 +5303,9 @@
                     ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--amarelo);text-align:center;letter-spacing:2px;">${r.gols1} × ${r.gols2}${r.pror1 != null ? `<div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">pror. ${r.pror1}×${r.pror2}</div>` : ''}${r.pen1 != null ? `<div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">pên. ${r.pen1}×${r.pen2}</div>` : ''}</div>`
                     : '<div class="mm-vs">VS</div>';
                 const temPalpites = tA && tB;
+                const info = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
                 return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}"${temPalpites ? ` style="cursor:pointer;" onclick="abrirExplorerPorJogoKO('${fase}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
+                    ${info}
                     <div class="mm-time mm-esq"><span class="mm-nome">${nA}</span>${fA}</div>
                     ${placar}
                     <div class="mm-time mm-dir">${fB}<span class="mm-nome">${nB}</span></div>
@@ -5298,6 +5314,37 @@
             }).join('');
 
             const emojiLabel = { oitavas: '⚔️', quartas: '🏆', semis: '🏆', final: '🥇' }[fase] || '⚔️';
+
+            // Fases futuras (além da próxima): mostra só como preview informativo,
+            // com os times ainda "possíveis" e a data/cidade, sem link pra explorer
+            // (já que ainda não dá pra ter palpites nelas).
+            let previewFasesFuturas = '';
+            for (let i = idxProxima + 1; i < fasesKOOrdem.length; i++) {
+                const f = fasesKOOrdem[i];
+                const jogosF = fasesKO[f]?.jogos || [];
+                if (!jogosF.length) continue;
+                const cardsF = jogosF.map(j => {
+                    const tA = resolverTimeKO(j.fonteA);
+                    const tB = resolverTimeKO(j.fonteB);
+                    const nA = tA ? tA.nome : labelVagaKO(j.fonteA, j.labelA);
+                    const nB = tB ? tB.nome : labelVagaKO(j.fonteB, j.labelB);
+                    const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
+                    const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
+                    const info = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
+                    const label3 = j.terceiro ? '<div class="mm-card-info" style="opacity:0.6;">🥉 Disputa do 3º Lugar</div>' : '';
+                    return `<div class="mm-card" style="opacity:0.6;">
+                        ${info}${label3}
+                        <div class="mm-time mm-esq"><span class="mm-nome">${nA}</span>${fA}</div>
+                        <div class="mm-vs">VS</div>
+                        <div class="mm-time mm-dir">${fB}<span class="mm-nome">${nB}</span></div>
+                    </div>`;
+                }).join('');
+                const emojiF = { semis: '🏆', final: '🥇' }[f] || '📅';
+                previewFasesFuturas += `<div class="mm-secao">
+                    <div class="mm-secao-titulo">${emojiF} Em breve: ${fasesKO[f].label}</div>
+                    <div class="mm-grid">${cardsF}</div>
+                </div>`;
+            }
 
             container.innerHTML = `
             <div style="margin-bottom:6px;">
@@ -5309,6 +5356,7 @@
                 <div class="mm-secao-titulo">🔜 Próxima fase: ${label}</div>
                 <div class="mm-grid">${cardsProxima}</div>
             </div>
+            ${previewFasesFuturas}
             `;
         }
         window.renderizarMataMata = renderizarMataMata;
@@ -5339,13 +5387,24 @@
             'quartas': {
                 label: 'Quartas de Final',
                 // Confirmado pela fonte oficial: Quartas 1: Oit1xOit2 | Quartas 2: Oit3xOit4 | Quartas 3: Oit5xOit6 | Quartas 4: Oit7xOit8
-                jogos: Array.from({ length: 4 }, (_, i) => ({ id: `qrt-${i + 1}`, labelA: `Vencedor Oit-${i * 2 + 1}`, labelB: `Vencedor Oit-${i * 2 + 2}`, fonteA: { ko: 'oitavas', idx: i * 2 }, fonteB: { ko: 'oitavas', idx: i * 2 + 1 } }))
+                jogos: [
+                    { id: 'qrt-1', labelA: 'Vencedor Oit-1', labelB: 'Vencedor Oit-2', fonteA: { ko: 'oitavas', idx: 0 }, fonteB: { ko: 'oitavas', idx: 1 }, dataHora: '09/07 · Qui · 17h00', cidade: 'Boston' },
+                    { id: 'qrt-2', labelA: 'Vencedor Oit-3', labelB: 'Vencedor Oit-4', fonteA: { ko: 'oitavas', idx: 2 }, fonteB: { ko: 'oitavas', idx: 3 }, dataHora: '10/07 · Sex · 16h00', cidade: 'Los Angeles' },
+                    { id: 'qrt-3', labelA: 'Vencedor Oit-5', labelB: 'Vencedor Oit-6', fonteA: { ko: 'oitavas', idx: 4 }, fonteB: { ko: 'oitavas', idx: 5 }, dataHora: '11/07 · Sáb · 18h00', cidade: 'Miami' },
+                    { id: 'qrt-4', labelA: 'Vencedor Oit-7', labelB: 'Vencedor Oit-8', fonteA: { ko: 'oitavas', idx: 6 }, fonteB: { ko: 'oitavas', idx: 7 }, dataHora: '11/07 · Sáb · 22h00', cidade: 'Kansas City' },
+                ]
             },
-            'semis': { label: 'Semifinais', jogos: Array.from({ length: 2 }, (_, i) => ({ id: `sem-${i + 1}`, labelA: `Vencedor Qrt-${i * 2 + 1}`, labelB: `Vencedor Qrt-${i * 2 + 2}`, fonteA: { ko: 'quartas', idx: i * 2 }, fonteB: { ko: 'quartas', idx: i * 2 + 1 } })) },
+            'semis': {
+                label: 'Semifinais',
+                jogos: [
+                    { id: 'sem-1', labelA: 'Vencedor Qrt-1', labelB: 'Vencedor Qrt-2', fonteA: { ko: 'quartas', idx: 0 }, fonteB: { ko: 'quartas', idx: 1 }, dataHora: '14/07 · Ter · 16h00', cidade: 'Dallas' },
+                    { id: 'sem-2', labelA: 'Vencedor Qrt-3', labelB: 'Vencedor Qrt-4', fonteA: { ko: 'quartas', idx: 2 }, fonteB: { ko: 'quartas', idx: 3 }, dataHora: '15/07 · Qua · 16h00', cidade: 'Atlanta' },
+                ]
+            },
             'final': {
                 label: 'Final & 3º Lugar', jogos: [
-                    { id: 'final-2', labelA: 'Perdedor Semi-1', labelB: 'Perdedor Semi-2', fonteA: { ko: 'semis', idx: 0, perdedor: true }, fonteB: { ko: 'semis', idx: 1, perdedor: true }, terceiro: true },
-                    { id: 'final-1', labelA: 'Vencedor Semi-1', labelB: 'Vencedor Semi-2', fonteA: { ko: 'semis', idx: 0 }, fonteB: { ko: 'semis', idx: 1 } },
+                    { id: 'final-2', labelA: 'Perdedor Semi-1', labelB: 'Perdedor Semi-2', fonteA: { ko: 'semis', idx: 0, perdedor: true }, fonteB: { ko: 'semis', idx: 1, perdedor: true }, terceiro: true, dataHora: '18/07 · Sáb · 18h00', cidade: 'Miami' },
+                    { id: 'final-1', labelA: 'Vencedor Semi-1', labelB: 'Vencedor Semi-2', fonteA: { ko: 'semis', idx: 0 }, fonteB: { ko: 'semis', idx: 1 }, dataHora: '19/07 · Dom · 16h00', cidade: 'Nova Jersey' },
                 ]
             },
         };
