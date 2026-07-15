@@ -2133,6 +2133,37 @@
             opacity: 0.8;
         }
 
+        /* ══ BADGE FINAL x DISPUTA DE 3º LUGAR ══════════════ */
+        .badge-fase-ko {
+            grid-column: 1 / -1;
+            flex: 0 0 100%;
+            order: -2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin: 0 auto 6px;
+            width: fit-content;
+        }
+
+        .badge-fase-ko.badge-final {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.18), rgba(255, 223, 0, 0.28));
+            border: 1px solid rgba(255, 215, 0, 0.55);
+            color: #ffe680;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+        }
+
+        .badge-fase-ko.badge-terceiro {
+            background: rgba(205, 127, 50, 0.16);
+            border: 1px solid rgba(205, 127, 50, 0.55);
+            color: #e0a568;
+        }
+
         .mm-card::before {
             content: '';
             position: absolute;
@@ -4450,6 +4481,9 @@
                 }
 
                 const cidadeHtml = jogo.cidade ? `<div class="jogo-data">📍 ${jogo.cidade}${jogo.dataHora ? ' · ' + jogo.dataHora : ''}</div>` : '';
+                const badgeHtml = jogo.terceiro
+                    ? '<div class="badge-fase-ko badge-terceiro">🥉 Disputa de 3º Lugar</div>'
+                    : (fase === 'final' ? '<div class="badge-fase-ko badge-final">🏆 Grande Final</div>' : '');
                 const prorrogacaoHtml = (r && r.pror1 != null)
                     ? `<div style="grid-column:1/-1;text-align:center;font-size:10px;color:var(--amarelo);margin-top:-2px;">⏱️ prorrogação: ${r.pror1} x ${r.pror2}</div>`
                     : '';
@@ -4465,6 +4499,7 @@
                     div.setAttribute('onclick', `abrirExplorerPorJogoKO('${fase}','${jogo.id}')`);
                 }
                 div.innerHTML = `
+                ${badgeHtml}
                 ${cidadeHtml}
                 <div class="time-box esquerdo">
                     ${flagA}
@@ -5277,7 +5312,11 @@
                         : '<div class="mm-vs">VS</div>';
                     const temPalpites = tA && tB;
                     const infoF = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
+                    const badgeF = j.terceiro
+                        ? '<div class="badge-fase-ko badge-terceiro">🥉 Disputa de 3º Lugar</div>'
+                        : (f === 'final' ? '<div class="badge-fase-ko badge-final">🏆 Grande Final</div>' : '');
                     return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}" style="opacity:0.65;font-size:11px;${temPalpites ? 'cursor:pointer;' : ''}"${temPalpites ? ` onclick="abrirExplorerPorJogoKO('${f}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
+                        ${badgeF}
                         ${infoF}
                         <div class="mm-time mm-esq"><span class="mm-nome" style="font-size:10px;" title="${nA}">${nA}</span>${fA}</div>
                         ${placar}
@@ -5304,7 +5343,11 @@
                     : '<div class="mm-vs">VS</div>';
                 const temPalpites = tA && tB;
                 const info = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
+                const badge = j.terceiro
+                    ? '<div class="badge-fase-ko badge-terceiro">🥉 Disputa de 3º Lugar</div>'
+                    : (fase === 'final' ? '<div class="badge-fase-ko badge-final">🏆 Grande Final</div>' : '');
                 return `<div class="mm-card${temPalpites ? ' jogo-clicavel' : ''}"${temPalpites ? ` style="cursor:pointer;" onclick="abrirExplorerPorJogoKO('${fase}','${j.id}')" title="Ver palpites de todos para este jogo"` : ''}>
+                    ${badge}
                     ${info}
                     <div class="mm-time mm-esq"><span class="mm-nome" title="${nA}">${nA}</span>${fA}</div>
                     ${placar}
@@ -5331,7 +5374,9 @@
                     const fA = tA?.cod ? `<img src="https://flagcdn.com/w40/${tA.cod}.png" class="flag-img mm-flag">` : '';
                     const fB = tB?.cod ? `<img src="https://flagcdn.com/w40/${tB.cod}.png" class="flag-img mm-flag">` : '';
                     const info = j.cidade ? `<div class="mm-card-info">📍 ${j.cidade}${j.dataHora ? ' · ' + j.dataHora : ''}</div>` : '';
-                    const label3 = j.terceiro ? '<div class="mm-card-info" style="opacity:0.6;">🥉 Disputa do 3º Lugar</div>' : '';
+                    const label3 = j.terceiro
+                        ? '<div class="badge-fase-ko badge-terceiro">🥉 Disputa de 3º Lugar</div>'
+                        : (f === 'final' ? '<div class="badge-fase-ko badge-final">🏆 Grande Final</div>' : '');
                     return `<div class="mm-card" style="opacity:0.6;">
                         ${info}${label3}
                         <div class="mm-time mm-esq"><span class="mm-nome" title="${nA}">${nA}</span>${fA}</div>
@@ -5540,7 +5585,9 @@
                 const empateAtual = !isPalpite && v1 !== '' && v2 !== '' && Number(v1) === Number(v2);
                 // Se já existe prorrogação salva, considera o empate da prorrogação para mostrar pênaltis
                 const empateProrrogacao = empateAtual && pror1 !== '' && pror2 !== '' && Number(pror1) === Number(pror2);
-                const label3 = jogo.terceiro ? '<span style="font-size:9px;color:var(--text-dim);"> · 3º Lugar</span>' : '';
+                const badgeJogo = jogo.terceiro
+                    ? '<div class="badge-fase-ko badge-terceiro" style="grid-column:1/-1;">🥉 Disputa de 3º Lugar</div>'
+                    : (fase === 'final' ? '<div class="badge-fase-ko badge-final" style="grid-column:1/-1;">🏆 Grande Final</div>' : '');
                 const metaInfo = (jogo.dataHora || jogo.cidade)
                     ? `<div style="grid-column:1/-1;font-size:9px;color:var(--text-dim);text-align:center;padding-bottom:2px;letter-spacing:0.5px;">
                         ${jogo.dataHora ? `🗓 ${jogo.dataHora}` : ''}${jogo.cidade ? ` &nbsp;·&nbsp; 📍 ${jogo.cidade}` : ''}
@@ -5568,6 +5615,7 @@
                     ? `oninput="toggleKOPenaltis('${prefix}','${jogo.id}')"`
                     : '';
                 return `<div class="ko-jogo-linha ${bloqueado ? 'ko-bloqueado' : ''}" style="flex-wrap:wrap;">
+                    ${badgeJogo}
                     ${metaInfo}
                     <div class="time-box esquerdo" style="flex:1;min-width:0;">
                         <span style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nomeA}</span>
@@ -5582,7 +5630,7 @@
                     </div>
                     <div class="time-box direito" style="flex:1;min-width:0;">
                         ${flagB}
-                        <span style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nomeB}${label3}</span>
+                        <span style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nomeB}</span>
                     </div>
                     ${prorrogacaoHtml}
                     ${penaltisHtml}
